@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>PROJETO M:I — Operação Nexus</title>
+<link rel="icon" type="image/png" href="../favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--surface:#0a0d12;--on:#e5e2e1;--onv:#c1c7cc;--gold:#c5a059;--goldl:#e9c176;--bronze:#cd7f32;--amber:#ffbf00;--petrol:#003344;--ivory:#f5f5dc;--red:#ef4444;--green:#4ade80;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--surface);font-family:"Manrope",sans-serif;color:var(--on);}
+.city-bg{position:fixed;inset:0;z-index:1;background:radial-gradient(ellipse at 30% 20%,rgba(197,160,89,0.15) 0%,transparent 50%),radial-gradient(ellipse at 70% 80%,rgba(0,51,68,0.25) 0%,transparent 60%),linear-gradient(180deg,#0a0d12 0%,#151a22 40%,#1e2530 70%,#0a0d12 100%);}
+.city-photo{position:fixed;inset:0;z-index:1;background-size:cover;background-position:center;opacity:0.35;filter:saturate(0.85) contrast(1.05);}
+.city-silhouette{position:fixed;bottom:0;left:0;right:0;height:45%;z-index:2;background:linear-gradient(180deg,transparent 0%,rgba(10,13,18,0.6) 40%,#05070a 100%);}
+.buildings{position:fixed;bottom:0;left:0;right:0;height:40%;z-index:3;display:flex;align-items:flex-end;gap:2px;padding:0 20px;pointer-events:none;}
+.building{flex:1;background:linear-gradient(180deg,#1a1f28,#0a0d12);position:relative;opacity:0.85;}
+.building::before{content:"";position:absolute;inset:8px;background:repeating-linear-gradient(0deg,transparent 0,transparent 10px,rgba(255,191,0,0.15) 10px,rgba(255,191,0,0.15) 12px);opacity:0.4;}
+.film-grain{position:fixed;inset:0;z-index:4;pointer-events:none;opacity:0.08;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");mix-blend-mode:overlay;}
+.scanlines{position:fixed;inset:0;z-index:5;pointer-events:none;opacity:0.15;background:repeating-linear-gradient(0deg,rgba(0,0,0,0.3) 0,rgba(0,0,0,0.3) 1px,transparent 1px,transparent 3px);}
+.vignette{position:fixed;inset:0;z-index:6;pointer-events:none;box-shadow:inset 0 0 180px rgba(0,0,0,0.8);}
+.ui{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;pointer-events:none;}
+.ui>*{pointer-events:auto;}
+.case-header{display:flex;justify-content:space-between;align-items:flex-start;padding:20px 32px;gap:20px;background:linear-gradient(180deg,rgba(10,13,18,0.95) 0%,rgba(10,13,18,0.6) 70%,transparent 100%);flex-wrap:wrap;}
+.case-title{flex:1;min-width:280px;}
+.case-label{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--gold);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.case-label::before{content:"";width:16px;height:1px;background:var(--gold);}
+.case-name{font-family:"Libre Caslon Text",serif;font-size:28px;font-weight:700;color:var(--goldl);letter-spacing:-0.01em;margin-bottom:4px;}
+.case-meta{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--onv);letter-spacing:0.05em;display:flex;flex-direction:column;gap:2px;}
+.case-meta strong{color:var(--amber);}
+.case-meta .suspect-tag{color:var(--bronze);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;margin-top:4px;}
+.agent-level{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--amber);letter-spacing:0.15em;text-transform:uppercase;margin-top:4px;}
+.agent-level i{color:var(--gold);margin-right:4px;}
+.timer-block{background:rgba(0,51,68,0.3);border:0.5px solid var(--gold);padding:12px 20px;border-radius:4px;text-align:center;min-width:160px;}
+.timer-label{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--gold);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:4px;}
+.timer-value{font-family:"JetBrains Mono",monospace;font-size:24px;font-weight:700;color:var(--amber);letter-spacing:0.05em;}
+.timer-value.critical{color:var(--red);animation:pulse-red 1s infinite;}
+.timer-value.warning{color:var(--amber);}
+@keyframes pulse-red{0%,100%{opacity:1;}50%{opacity:0.6;}}
+.progress-block{background:rgba(0,51,68,0.3);border:0.5px solid var(--gold);padding:12px 20px;border-radius:4px;min-width:200px;}
+.progress-track{display:flex;gap:4px;margin-top:8px;}
+.progress-dot{flex:1;height:6px;background:rgba(197,160,89,0.2);border-radius:2px;transition:all 0.3s;}
+.progress-dot.visited{background:var(--gold);}
+.progress-dot.current{background:var(--amber);box-shadow:0 0 8px var(--amber);}
+.progress-info{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--onv);display:flex;justify-content:space-between;letter-spacing:0.1em;}
+.locations-area{flex:1;display:flex;align-items:center;justify-content:center;padding:20px;pointer-events:none;overflow-y:auto;}
+.locations-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;max-width:900px;width:100%;pointer-events:auto;}
+.location-card{background:rgba(10,13,18,0.75);backdrop-filter:blur(12px);border:0.5px solid rgba(197,160,89,0.3);border-radius:4px;padding:20px;cursor:pointer;transition:all 0.3s;position:relative;overflow:hidden;}
+.location-card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0;transition:opacity 0.3s;}
+.location-card:hover{border-color:var(--gold);transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,0.5),0 0 20px rgba(197,160,89,0.2);}
+.location-card:hover::before{opacity:1;}
+.location-card.visited{opacity:0.45;border-color:rgba(197,160,89,0.15);cursor:not-allowed;}
+.location-card.visited:hover{transform:none;box-shadow:none;}
+.location-card.burned{opacity:0.3;border-color:var(--red);cursor:not-allowed;}
+.location-card.burned::after{content:"🔒";position:absolute;top:8px;right:8px;font-size:16px;}
+.location-card.has-clue::after{content:"";position:absolute;top:8px;right:8px;width:8px;height:8px;background:var(--amber);border-radius:50%;box-shadow:0 0 8px var(--amber);animation:pulse-clue 2s infinite;}
+.location-card.visited.has-clue::after{background:var(--green);box-shadow:0 0 8px var(--green);}
+.location-card.has-neg-clue::after{content:"✗";position:absolute;top:6px;right:8px;width:16px;height:16px;background:var(--red);color:#fff;border-radius:50%;font-family:"JetBrains Mono",monospace;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 0 8px var(--red);animation:pulse-clue 2s infinite;}
+@keyframes pulse-clue{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.6;transform:scale(1.3);}}
+.location-icon{width:48px;height:48px;background:rgba(197,160,89,0.1);border:0.5px solid var(--gold);border-radius:4px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:22px;color:var(--gold);}
+.location-name{font-family:"Libre Caslon Text",serif;font-size:18px;font-weight:600;color:var(--goldl);margin-bottom:4px;}
+.location-hint{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--onv);letter-spacing:0.08em;text-transform:uppercase;}
+.location-cost{display:inline-block;margin-top:8px;padding:2px 8px;background:rgba(197,160,89,0.1);color:var(--gold);font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:0.1em;border-radius:2px;}
+.location-visited-tag{display:inline-block;margin-top:8px;padding:2px 8px;background:rgba(74,222,128,0.15);color:var(--green);font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:0.1em;border-radius:2px;}
+.action-bar{display:flex;gap:12px;padding:16px 32px;background:linear-gradient(0deg,rgba(10,13,18,0.95) 0%,rgba(10,13,18,0.6) 70%,transparent 100%);justify-content:space-between;flex-wrap:wrap;}
+.action-group{display:flex;gap:12px;flex-wrap:wrap;}
+.action-btn{padding:14px 22px;background:rgba(0,51,68,0.4);border:0.5px solid var(--gold);color:var(--goldl);font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;gap:10px;border-radius:3px;text-decoration:none;}
+.action-btn:hover{background:var(--gold);color:var(--surface);box-shadow:0 0 20px rgba(197,160,89,0.4);}
+.action-btn:disabled{opacity:0.3;cursor:not-allowed;pointer-events:none;}
+.action-btn.primary{background:var(--gold);color:var(--surface);font-weight:700;}
+.action-btn.primary:hover{background:var(--amber);box-shadow:0 0 30px rgba(255,191,0,0.6);}
+.action-btn.capture{background:var(--red);color:#fff;border-color:var(--red);}
+.action-btn.capture:hover{background:#dc2626;box-shadow:0 0 30px rgba(239,68,68,0.5);}
+.action-btn i{font-size:14px;}
+.clue-counter{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--amber);margin-left:4px;}
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+.modal-backdrop.active{opacity:1;pointer-events:auto;}
+.witness-modal{max-width:600px;width:100%;background:var(--ivory);color:#1a1a1a;padding:32px;border-radius:4px;border:1px solid var(--gold);position:relative;box-shadow:0 30px 80px rgba(0,0,0,0.8),0 0 0 1px rgba(197,160,89,0.3);transform:translateY(20px);transition:transform 0.3s;max-height:85vh;overflow-y:auto;}
+.modal-backdrop.active .witness-modal{transform:translateY(0);}
+.modal-close{position:absolute;top:16px;right:16px;width:32px;height:32px;background:transparent;border:1px solid var(--bronze);color:var(--bronze);cursor:pointer;border-radius:2px;font-size:16px;transition:all 0.3s;}
+.modal-close:hover{background:var(--bronze);color:var(--ivory);}
+.modal-location{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--bronze);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:8px;}
+.modal-title{font-family:"Libre Caslon Text",serif;font-size:24px;font-weight:700;color:#1a1a1a;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(197,160,89,0.3);}
+.witness-portrait{display:flex;gap:16px;align-items:flex-start;margin-bottom:20px;}
+.witness-avatar{width:64px;height:64px;background:var(--petrol);border:1px solid var(--gold);border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:"Libre Caslon Text",serif;font-size:24px;color:var(--gold);flex-shrink:0;overflow:hidden;}
+.witness-avatar img{width:100%;height:100%;object-fit:cover;object-position:top;}
+.witness-info{flex:1;}
+.witness-name{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--bronze);letter-spacing:0.1em;margin-bottom:4px;font-weight:700;}
+.witness-role{font-family:"Manrope",sans-serif;font-size:14px;color:#333;}
+.approach-options{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;}
+.approach-btn{flex:1;min-width:140px;padding:16px;background:rgba(197,160,89,0.1);border:1px solid var(--gold);border-radius:4px;cursor:pointer;transition:all 0.3s;text-align:center;}
+.approach-btn:hover{background:var(--gold);color:var(--surface);transform:translateY(-2px);}
+.approach-btn .icon{font-size:24px;margin-bottom:8px;}
+.approach-btn .label{font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;}
+.approach-btn .cost{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--bronze);margin-top:4px;}
+.approach-btn .risk{font-family:"JetBrains Mono",monospace;font-size:8px;color:var(--onv);margin-top:2px;}
+.clue-box{background:rgba(197,160,89,0.12);border-left:3px solid var(--gold);padding:16px 20px;margin-top:12px;position:relative;}
+.clue-label{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--bronze);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:8px;font-weight:700;}
+.clue-text{font-family:"Libre Caslon Text",serif;font-style:italic;font-size:16px;line-height:1.6;color:#1a1a1a;}
+.clue-text::before{content:'"';font-size:32px;color:var(--gold);line-height:0;vertical-align:-12px;margin-right:4px;}
+.clue-text::after{content:'"';font-size:32px;color:var(--gold);line-height:0;vertical-align:-12px;margin-left:4px;}
+.clue-box.negative{background:rgba(239,68,68,0.1);border-left:3px solid var(--red);}
+.clue-box.negative .clue-label{color:var(--red);}
+.clue-box.negative .clue-text{color:#7f1d1d;}
+.clue-box.negative .clue-text::before,.clue-box.negative .clue-text::after{color:var(--red);}
+.no-clue{text-align:center;padding:20px;color:#444;font-family:"Manrope",sans-serif;font-style:italic;line-height:1.6;}
+.no-clue i{font-size:32px;display:block;margin-bottom:12px;}
+.modal-actions{display:flex;gap:12px;margin-top:24px;justify-content:flex-end;flex-wrap:wrap;}
+.modal-btn{padding:10px 20px;font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;border-radius:3px;transition:all 0.3s;}
+.modal-btn.primary{background:var(--gold);color:var(--surface);border:none;font-weight:700;}
+.modal-btn.primary:hover{background:var(--amber);}
+.modal-btn.secondary{background:transparent;color:var(--bronze);border:1px solid var(--bronze);}
+.modal-btn.secondary:hover{background:var(--bronze);color:var(--ivory);}
+.time-spent-note{margin-top:12px;padding:8px 14px;background:rgba(0,51,68,0.08);border-left:2px solid var(--bronze);font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--bronze);letter-spacing:0.08em;text-transform:uppercase;}
+.time-spent-note i{color:var(--bronze);margin-right:6px;}
+.clues-drawer{position:fixed;top:0;right:0;bottom:0;width:420px;max-width:90vw;background:#0f1318;border-left:1px solid var(--gold);z-index:90;transform:translateX(100%);transition:transform 0.4s;display:flex;flex-direction:column;box-shadow:-20px 0 60px rgba(0,0,0,0.6);}
+.clues-drawer.open{transform:translateX(0);}
+.drawer-header{padding:20px 24px;border-bottom:1px solid rgba(197,160,89,0.3);display:flex;justify-content:space-between;align-items:center;}
+.drawer-title{font-family:"Libre Caslon Text",serif;font-size:20px;color:var(--goldl);font-weight:700;}
+.drawer-close{background:transparent;border:1px solid var(--bronze);color:var(--bronze);width:28px;height:28px;border-radius:2px;cursor:pointer;transition:all 0.3s;}
+.drawer-close:hover{background:var(--bronze);color:var(--ivory);}
+.drawer-content{flex:1;overflow-y:auto;padding:20px 24px;}
+.drawer-section{margin-bottom:28px;}
+.drawer-section-title{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--gold);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.drawer-section-title::before{content:"";width:12px;height:1px;background:var(--gold);}
+.drawer-section-title.negative{color:var(--red);}
+.drawer-section-title.negative::before{background:var(--red);}
+.drawer-empty{font-family:"Manrope",sans-serif;font-size:12px;color:var(--onv);font-style:italic;padding:8px 0;opacity:0.6;}
+.clue-item{padding:10px 12px;background:rgba(0,51,68,0.3);border-left:2px solid var(--gold);margin-bottom:8px;font-family:"Libre Caslon Text",serif;font-style:italic;font-size:13px;line-height:1.5;color:var(--ivory);}
+.clue-item.negative{background:rgba(239,68,68,0.15);border-left:2px solid var(--red);color:#fecaca;}
+.clue-item.inv{display:flex;gap:10px;align-items:flex-start;}
+.inv-icon{flex-shrink:0;width:30px;height:30px;border:1px solid var(--gold);background:rgba(0,51,68,0.4);display:flex;align-items:center;justify-content:center;font-size:15px;border-radius:4px;}
+.inv-artifact{display:flex;gap:14px;align-items:center;padding:14px;border:1px solid var(--gold);background:rgba(197,160,89,0.08);margin-bottom:20px;}
+.inv-artifact img{width:64px;height:64px;object-fit:cover;border-radius:4px;border:1px solid var(--gold);}
+.inv-artifact .inv-emoji{font-size:40px;}
+.inv-name{font-family:"Libre Caslon Text",serif;font-size:16px;font-weight:700;color:var(--goldl);}
+.inv-origin{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--onv);letter-spacing:0.1em;text-transform:uppercase;margin-top:2px;}
+.clue-item-source{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--bronze);letter-spacing:0.1em;text-transform:uppercase;margin-top:6px;font-style:normal;}
+.empty-city-overlay{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,0.65);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity 0.4s;}
+.empty-city-overlay.active{opacity:1;pointer-events:auto;}
+.empty-city-card{max-width:560px;width:100%;background:#0a0d12;border:1px solid var(--bronze);padding:40px;border-radius:4px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,0.8),0 0 0 1px rgba(197,160,89,0.2);transform:translateY(20px);transition:transform 0.4s;}
+.empty-city-overlay.active .empty-city-card{transform:translateY(0);}
+.empty-city-icon{font-size:64px;margin-bottom:20px;animation:float-empty 3s ease-in-out infinite;filter:drop-shadow(0 0 20px rgba(205,127,50,0.4));}
+@keyframes float-empty{0%,100%{transform:translateY(0) rotate(-3deg);}50%{transform:translateY(-8px) rotate(3deg);}}
+.empty-city-title{font-family:"Libre Caslon Text",serif;font-size:26px;font-weight:700;color:var(--bronze);margin-bottom:8px;}
+.empty-city-subtitle{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--onv);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:24px;}
+.empty-city-body{font-family:"Manrope",sans-serif;font-size:14px;color:var(--on);line-height:1.7;margin-bottom:24px;padding:20px;background:rgba(205,127,50,0.08);border-left:3px solid var(--bronze);text-align:left;}
+.empty-city-body strong{color:var(--amber);}
+.empty-city-hint{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--onv);letter-spacing:0.1em;margin-bottom:24px;padding:12px;background:rgba(0,51,68,0.2);border-radius:3px;}
+.empty-city-hint i{color:var(--amber);margin-right:6px;}
+.empty-city-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--petrol);border:1px solid var(--gold);padding:14px 24px;border-radius:4px;z-index:200;font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--goldl);letter-spacing:0.1em;opacity:0;transition:all 0.3s;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,0.6);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.error{border-color:var(--red);color:#fecaca;}
+.toast.success{border-color:var(--green);color:#bbf7d0;}
+@media (max-width:768px){.case-header{padding:16px 20px;}.case-name{font-size:22px;}.locations-grid{grid-template-columns:repeat(2,1fr);gap:10px;}.location-card{padding:14px;}.action-bar{padding:12px 20px;}.action-btn{padding:10px 14px;font-size:10px;}.empty-city-card{padding:24px;}.empty-city-title{font-size:20px;}.approach-options{flex-direction:column;}}
+</style>
+</head>
+<body>
+<div class="city-bg"></div>
+<div class="city-photo" id="cityPhoto" style="display:none"></div>
+<div class="buildings" id="buildings"></div>
+<div class="city-silhouette"></div>
+<div class="film-grain"></div>
+<div class="scanlines"></div>
+<div class="vignette"></div>
+<div class="ui">
+  <div class="case-header">
+    <div class="case-title">
+      <div class="case-label">Operação Ativa • <span id="cityCountry">—</span></div>
+      <div class="case-name" id="cityName">—</div>
+      <div class="case-meta">
+        <span>Alvo: <strong id="artifactName">—</strong></span>
+        <span class="suspect-tag" id="initialSuspect"><i class="fas fa-user-secret"></i> Perfil: —</span>
+        <span class="agent-level"><i class="fas fa-star"></i> Nível <span id="agentLevel">1</span></span>
+      </div>
+    </div>
+    <div class="timer-block">
+      <div class="timer-label">Tempo Restante</div>
+      <div class="timer-value" id="timerValue">48h</div>
+    </div>
+    <div class="progress-block">
+      <div class="progress-info"><span>ROTA DO CASO</span><span id="progressCount">0 / 0</span></div>
+      <div class="progress-track" id="progressTrack"></div>
+    </div>
+  </div>
+  <div class="locations-area"><div class="locations-grid" id="locationsGrid"></div></div>
+  <div class="action-bar">
+    <div class="action-group">
+      <a href="03-globo.html" class="action-btn"><i class="fas fa-arrow-left"></i> Globo</a>
+      <button class="action-btn" id="btnDiary"><i class="fas fa-book"></i> Diário<span class="clue-counter" id="clueCounter">(0)</span></button>
+      <button class="action-btn" id="btnCrimeNet"><i class="fas fa-database"></i> CrimeNet</button>
+    </div>
+    <div class="action-group">
+      <button class="action-btn capture" id="btnCapture" style="display:none"><i class="fas fa-crosshairs"></i> Iniciar Captura</button>
+      <button class="action-btn primary" id="btnTravel" disabled><i class="fas fa-plane"></i> Viajar</button>
+    </div>
+  </div>
+</div>
+<div class="empty-city-overlay" id="emptyCityOverlay">
+  <div class="empty-city-card">
+    <div class="empty-city-icon">🕵️‍♂️</div>
+    <div class="empty-city-title">Sem pistas relevantes</div>
+    <div class="empty-city-subtitle" id="emptyCityName">—</div>
+    <div class="empty-city-body">Seu agente percorreu as principais fontes de informação da cidade, mas <strong>nenhuma testemunha pôde fornecer pistas úteis</strong> para o caso atual.<br><br><strong>Recomendação:</strong> Revise suas pistas geográficas no diário e escolha um destino que tenha conexão direta com as informações já coletadas.</div>
+    <div class="empty-city-hint"><i class="fas fa-lightbulb"></i> O tempo gasto na viagem já foi descontado do seu prazo.</div>
+    <div class="empty-city-actions">
+      <button class="action-btn secondary" id="btnEmptyDiary"><i class="fas fa-book"></i> Ver Diário</button>
+      <a href="03-globo.html" class="action-btn primary"><i class="fas fa-globe"></i> Voltar ao Globo</a>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop" id="witnessModal">
+  <div class="witness-modal">
+    <button class="modal-close" id="btnModalClose">✕</button>
+    <div class="modal-location" id="modalLocation">—</div>
+    <div class="modal-title" id="modalTitle">Encontro com Testemunha</div>
+    <div class="witness-portrait">
+      <div class="witness-avatar" id="witnessAvatar">?</div>
+      <div class="witness-info">
+        <div class="witness-name" id="witnessName">—</div>
+        <div class="witness-role" id="witnessRole">—</div>
+      </div>
+    </div>
+    <div id="clueContainer"></div>
+    <div class="approach-options" id="approachOptions">
+      <button class="approach-btn" data-approach="friendly"><div class="icon">🤝</div><div class="label">Amigável</div><div class="cost">1h</div><div class="risk">70% sucesso</div></button>
+      <button class="approach-btn" data-approach="pressure"><div class="icon">😠</div><div class="label">Pressão</div><div class="cost">1.5h</div><div class="risk">50% sucesso</div></button>
+      <button class="approach-btn" data-approach="bribe"><div class="icon">💰</div><div class="label">Suborno</div><div class="cost">2h</div><div class="risk">100% sucesso</div></button>
+    </div>
+    <div class="modal-actions" id="modalActions" style="display:none">
+      <button class="modal-btn secondary" id="btnModalDismiss">Fechar</button>
+      <button class="modal-btn primary" id="btnSaveClue"><i class="fas fa-bookmark"></i> Registrar no Diário</button>
+    </div>
+  </div>
+</div>
+<div class="clues-drawer" id="cluesDrawer">
+  <div class="drawer-header">
+    <div class="drawer-title">Diário de Campo</div>
+    <button class="drawer-close" id="btnDrawerClose">✕</button>
+  </div>
+  <div class="drawer-content" id="drawerContent"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="../database.js"></script>
+<script src="../data/artifacts.js"></script>
+<script>
+(function(global){'use strict';
+const CASE_KEY='minexus_case_001';
+const DEFAULT_TIME_STATE={timeLimitHours:48,currentHour:9,currentDay:1,currentCityTZ:'UTC-5'};
+function loadCase(){try{const s=localStorage.getItem(CASE_KEY);return s?JSON.parse(s):null;}catch(e){return null;}}
+function saveCase(d){try{localStorage.setItem(CASE_KEY,JSON.stringify(d));}catch(e){}}
+function formatTime(h){var hh=Math.floor(h),mm=Math.floor((h-hh)*60);return (hh<10?'0':'')+hh+':'+(mm<10?'0':'')+mm;}
+function formatTimeLeft(h){if(h<=0)return 'ESGOTADO';const d=Math.floor(h/24),hh=Math.floor(h%24),m=Math.floor((h-Math.floor(h))*60);if(d>0)return d+'d '+hh+'h';if(hh>0)return hh+'h '+m+'min';return m+'min';}
+function consumeTime(hours,cityTZ){if(hours<=0)return{success:false};const d=loadCase();if(!d)return{success:false};if(!d.timeState)d.timeState={...DEFAULT_TIME_STATE};if(typeof d.timeLimitHours!=='number')d.timeLimitHours=d.timeState.timeLimitHours;let nh=d.timeState.currentHour+hours;let ov=0;while(nh>=24){nh-=24;ov++;}d.timeState.currentHour=nh;d.timeState.currentDay+=ov;d.timeLimitHours=Math.max(0,d.timeLimitHours-hours);d.timeState.timeLimitHours=d.timeLimitHours;if(cityTZ)d.timeState.currentCityTZ=cityTZ;saveCase(d);return{success:true,timeLeft:d.timeLimitHours,day:d.timeState.currentDay,exhausted:d.timeLimitHours<=0};}
+function parseTZ(tz){if(!tz)return 0;const m=tz.match(/UTC([+-])(\d+(?::\d+)?)/);if(!m)return 0;const s=m[1]==='+'?1:-1;const q=m[2].split(':');return s*(parseInt(q[0],10)+(q[1]?parseInt(q[1],10)/60:0));}
+function getLocalTime(cityTZ){const d=loadCase();if(!d||!d.timeState)return{hour:9,formatted:'09:00',isNight:false,isDawn:false,isDusk:false,day:1};const diff=parseTZ(cityTZ)-parseTZ(d.timeState.currentCityTZ||'UTC-5');let h=d.timeState.currentHour+diff;while(h>=24)h-=24;while(h<0)h+=24;return{hour:Math.floor(h),formatted:formatTime(h),isNight:h>=22||h<6,isDawn:h>=5&&h<7,isDusk:h>=19&&h<21,day:d.timeState.currentDay||1};}
+global.NexusTime={consumeTime,getLocalTime,formatTime,formatTimeLeft,parseTZ};
+})(window);
+</script>
+<script src="../audio-system.js" defer></script>
+<script>
+(function(){'use strict';
+const STORAGE_KEY='minexus_case_001', WARRANT_KEY='minexus_warrant', LEVEL_KEY='minexus_agent_level';
+
+// ⛓️ SISTEMA DE CARREIRA (prisão / fuga / reabertura)
+var Career={
+  PRISON:'minexus_prison',FUG:'minexus_fugitives',RES:'minexus_resolved',
+  get:function(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v==null?d:v;}catch(e){return d;}},
+  set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}},
+  resolved:function(){return this.get(this.RES,0);},
+  getPrison:function(){return this.get(this.PRISON,[]);},
+  isImprisoned:function(id){return this.getPrison().some(function(x){return x.id===id;});},
+  fail:function(cd){ // ⏰ tempo esgotou → vilão foge
+    this.set(this.RES,this.resolved()+1);
+    var f=this.get(this.FUG,[]);
+    f.push({culpritId:cd.culprit&&cd.culprit.id,artifact:cd.artifact,artifactIcon:cd.artifactIcon,artifactImage:cd.artifactImage,codename:cd.codename,reopenAt:this.resolved()+1,at:Date.now()});
+    this.set(this.FUG,f);
+  }
+};
+window.NexusCareer=Career;
+
+const DB=window.NEXUS_DATABASE||{cities:{},cases:{}};
+const cityCoords={};const CITY_PHOTOS={};
+Object.keys(DB.cities||{}).forEach(function(n){cityCoords[n]={country:DB.cities[n].country,tz:DB.cities[n].tz};CITY_PHOTOS[n]=DB.cities[n].photo;});
+const urlParams=new URLSearchParams(window.location.search);
+const isEmptyCity=urlParams.get('empty')==='1';
+let caseData,warrantData;
+try{caseData=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');}catch(e){caseData=null;}
+try{warrantData=JSON.parse(localStorage.getItem(WARRANT_KEY)||'null');}catch(e){warrantData=null;}
+if(!caseData||!caseData.locations){alert('Nenhum caso ativo. Aceite um caso na HQ.');window.location.href='02-hq.html';return;}
+if(!caseData.clues)caseData.clues={geo:[],id:[],neg:[]};
+if(!caseData.clues.neg)caseData.clues.neg=[];
+if(!caseData.cities)caseData.cities=[];
+if(!caseData.locationsVisited)caseData.locationsVisited=[];
+if(!caseData.burnedLocations)caseData.burnedLocations=[];
+if(!caseData.timeState)caseData.timeState={timeLimitHours:caseData.timeLimitHours||48,currentHour:9,currentDay:1,currentCityTZ:'UTC-5'};
+if(isEmptyCity){try{window.history.replaceState({},'',window.location.pathname);}catch(e){}}
+document.getElementById('agentLevel').textContent=localStorage.getItem(LEVEL_KEY)||'1';
+function persist(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(caseData));}catch(e){}}
+function audio(ev){try{if(window.ArchiveAudio&&typeof window.ArchiveAudio[ev]==='function')window.ArchiveAudio[ev]();}catch(e){}}
+let toastTimer;
+function showToast(msg,type){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type&&type!=='info'?' '+type:'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3000);}
+function iconForTrait(t){var M={'chapéu panamá':'🎩','sotaque francês':'🗣️','anel de sinete':'💍','mão esquerda':'🖐️','cabelos grisalhos':'🧓','terno azul':'🧥','cabelos loiros':'👱','relógio de ouro':'⌚','cabelos negros':'🖤','cicatriz no rosto':'⚡','perfume forte':'🌸','óculos escuros':'🕶️','barba':'🧔','charuto':'🚬','luvas de couro':'🧤','terno escuro':'🕴️','sotaque alemão':'🗣️'};return M[(t||'').trim()]||'•';}
+function findArtifact(name){var A=window.NEXUS_ARTIFACTS||[];var w=(name||'').trim();for(var i=0;i<A.length;i++){if((A[i].name||'').trim()===w)return A[i];}return null;}
+function renderSkyline(){const c=document.getElementById('buildings');c.innerHTML='';[70,85,55,92,74,64,88,48,78,60,82,52,90,68,76,62,80,58,72,86].forEach(function(h){const b=document.createElement('div');b.className='building';b.style.height=h+'%';c.appendChild(b);});}
+function getLocations(){
+  const cur=(caseData.cities||[]).find(function(c){return c.current;});
+  if(!cur)return[];
+  const cityName=(cur.name||'').trim();
+  if(caseData.locations&&caseData.locations[cityName])return caseData.locations[cityName];
+  const caseDb=DB.cases&&DB.cases[caseData.id];
+  if(caseDb&&caseDb.locations&&caseDb.locations[cityName])return caseDb.locations[cityName];
+  if(caseData.locations){var keys=Object.keys(caseData.locations);for(var i=0;i<keys.length;i++){if(keys[i].trim()===cityName)return caseData.locations[keys[i]];}}
+  return[];
+}
+function renderLocations(){
+  const grid=document.getElementById('locationsGrid');grid.innerHTML='';
+  if(isEmptyCity){document.querySelector('.locations-area').style.display='none';return;}
+  const locs=getLocations();
+  if(!locs||locs.length===0){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--onv);font-style:italic;">Nenhum local disponível nesta cidade.</div>';return;}
+  locs.forEach(function(loc){
+    const visited=(caseData.locationsVisited||[]).indexOf(loc.id)>=0;
+    const burned=(caseData.burnedLocations||[]).indexOf(loc.id)>=0;
+    const card=document.createElement('div');card.className='location-card';
+    if(visited&&!burned)card.classList.add('visited');
+    if(burned)card.classList.add('burned');
+    if(loc.hasClue&&!burned){if(loc.clueType==='negative')card.classList.add('has-neg-clue');else card.classList.add('has-clue');}
+    card.innerHTML='<div class="location-icon">'+(loc.icon||'📍')+'</div><div class="location-name">'+(loc.name||'Local')+'</div><div class="location-hint">'+(loc.hint||'')+'</div>'+(burned?'<div class="location-cost" style="background:rgba(239,68,68,0.2);color:var(--red);">🔒 QUEIMADO</div>':visited?'<div class="location-visited-tag"><i class="fas fa-check"></i> INVESTIGADO</div>':'<div class="location-cost"><i class="fas fa-clock"></i> INVESTIGAR</div>');
+    card.addEventListener('click',function(){if(visited||burned){showToast(burned?'Local queimado. Sem pistas.':'Este local já foi investigado.','error');return;}showApproachOptions(loc);});
+    grid.appendChild(card);
+  });
+}
+function renderProgress(){const track=document.getElementById('progressTrack');track.innerHTML='';const cities=caseData.cities||[];cities.forEach(function(city){const dot=document.createElement('div');dot.className='progress-dot';if(city.visited)dot.classList.add('visited');if(city.current)dot.classList.add('current');track.appendChild(dot);});const v=cities.filter(function(c){return c.visited;}).length;document.getElementById('progressCount').textContent=v+' / '+cities.length;}
+function renderHeader(){const cur=(caseData.cities||[]).find(function(c){return c.current;});if(cur){document.getElementById('cityName').textContent=cur.name||'—';document.getElementById('cityCountry').textContent=cur.country||'—';}document.getElementById('artifactName').textContent=caseData.artifact||'—';document.getElementById('initialSuspect').innerHTML='<i class="fas fa-user-secret"></i> Perfil: '+(caseData.initialProfile||'—');
+  const photoEl=document.getElementById('cityPhoto');const photoSrc=cur?(cur.photo||CITY_PHOTOS[cur.name]):null;
+  if(photoEl&&photoSrc){const tester=new Image();tester.onload=function(){photoEl.style.display='block';photoEl.style.backgroundImage='url("'+photoSrc+'")';};tester.onerror=function(){photoEl.style.display='none';};tester.src=photoSrc;}else if(photoEl){photoEl.style.display='none';}}
+function renderTimer(){const el=document.getElementById('timerValue');if(!el)return;const h=caseData.timeLimitHours;if(h<=0){el.textContent='ESGOTADO';el.classList.add('critical');return;}el.textContent=window.NexusTime.formatTimeLeft(h);el.classList.remove('critical','warning');if(h<=12)el.classList.add('critical');else if(h<=24)el.classList.add('warning');}
+function renderDrawer(){
+  var art=findArtifact(caseData.artifact);var html='';
+  html+='<div class="inv-artifact">'+(art&&art.image?'<img src="'+art.image+'" alt="" onerror="this.style.display=\'none\'">':'<span class="inv-emoji">'+(caseData.artifactIcon||'🏺')+'</span>')+'<div><div class="inv-name">'+(caseData.artifact||'Artefato')+'</div><div class="inv-origin">'+(art?((art.origin||'')+' • '+(art.era||'')):'')+'</div></div></div>';
+  if(art&&art.objectClues&&art.objectClues.length){html+='<div class="drawer-section"><div class="drawer-section-title"><i class="fas fa-search"></i> Pistas da Cena do Crime</div>';art.objectClues.forEach(function(oc){html+='<div class="clue-item inv"><span class="inv-icon">🔍</span><div>'+oc+'<div class="clue-item-source">— cena do roubo</div></div></div>';});html+='</div>';}
+  html+='<div class="drawer-section"><div class="drawer-section-title"><i class="fas fa-fingerprint"></i> Pistas de Identidade</div>';
+  if(!caseData.clues.id.length)html+='<div class="drawer-empty">Nenhum traço registrado.</div>';
+  caseData.clues.id.forEach(function(c){html+='<div class="clue-item inv"><span class="inv-icon">'+iconForTrait(c.idTrait)+'</span><div>'+c.text+'<div class="clue-item-source">— '+c.source+'</div></div></div>';});
+  html+='</div><div class="drawer-section"><div class="drawer-section-title negative"><i class="fas fa-times-circle"></i> Pistas Negativas (Exclusão)</div>';
+  if(!caseData.clues.neg.length)html+='<div class="drawer-empty">Nenhuma pista de exclusão.</div>';
+  caseData.clues.neg.forEach(function(c){html+='<div class="clue-item negative inv"><span class="inv-icon">❌</span><div>'+c.text+'<div class="clue-item-source">— '+c.source+'</div></div></div>';});
+  html+='</div><div class="drawer-section"><div class="drawer-section-title"><i class="fas fa-map-marker-alt"></i> Pistas Geográficas</div>';
+  if(!caseData.clues.geo.length)html+='<div class="drawer-empty">Nenhuma pista de destino.</div>';
+  caseData.clues.geo.forEach(function(c){html+='<div class="clue-item inv"><span class="inv-icon">🧭</span><div>'+c.text+'<div class="clue-item-source">— '+c.source+'</div></div></div>';});
+  html+='</div>';
+  document.getElementById('drawerContent').innerHTML=html;
+  var total=(caseData.clues.geo||[]).length+(caseData.clues.id||[]).length+(caseData.clues.neg||[]).length;
+  document.getElementById('clueCounter').textContent='('+total+')';
+}
+function updateTravelButton(){const btn=document.getElementById('btnTravel');if(isEmptyCity){btn.disabled=true;return;}btn.disabled=(caseData.clues.geo||[]).length<1;}
+function updateCrimeNetButton(){const btn=document.getElementById('btnCrimeNet');if(isEmptyCity)btn.disabled=(caseData.clues.id||[]).length<2;}
+function updateCaptureButton(){const btn=document.getElementById('btnCapture');if(!warrantData||!warrantData.correct){btn.style.display='none';return;}const cur=(caseData.cities||[]).find(function(c){return c.current;});if(!cur){btn.style.display='none';return;}btn.style.display=(cur.name===(warrantData.targetLocation&&warrantData.targetLocation.city))?'flex':'none';}
+function renderLocalTime(){const cur=(caseData.cities||[]).find(function(c){return c.current;});const tz=cur?((cityCoords[cur.name]||{}).tz||caseData.timeState.currentCityTZ||'UTC-5'):(caseData.timeState.currentCityTZ||'UTC-5');const local=window.NexusTime.getLocalTime(tz);let clockEl=document.getElementById('localClock');if(!clockEl){const tb=document.querySelector('.timer-block');if(!tb)return;clockEl=document.createElement('div');clockEl.id='localClock';clockEl.style.cssText='margin-top:8px;padding-top:8px;border-top:1px solid rgba(197,160,89,.2);font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--onv);letter-spacing:.1em;';tb.appendChild(clockEl);}const icon=local.isNight?'🌙':local.isDawn?'🌅':local.isDusk?'🌇':'️';clockEl.innerHTML=icon+' '+local.formatted+' • Dia '+(local.day||1);}
+function renderEmptyCity(){if(!isEmptyCity)return;const cur=(caseData.cities||[]).find(function(c){return c.current;});document.getElementById('emptyCityName').textContent=cur?cur.name+' • '+cur.country:'—';setTimeout(function(){document.getElementById('emptyCityOverlay').classList.add('active');},300);document.getElementById('btnEmptyDiary').addEventListener('click',function(){document.getElementById('cluesDrawer').classList.add('open');audio('playClick');});document.getElementById('btnTravel').disabled=true;}
+function renderAll(){renderSkyline();renderHeader();renderProgress();renderLocations();renderTimer();renderLocalTime();renderDrawer();updateTravelButton();updateCrimeNetButton();updateCaptureButton();renderEmptyCity();}
+let currentLocation=null,currentApproach=null;
+function getCurrentTZ(){const cur=(caseData.cities||[]).find(function(c){return c.current;});if(!cur)return caseData.timeState.currentCityTZ||'UTC-5';return (cityCoords[cur.name]||{}).tz||caseData.timeState.currentCityTZ||'UTC-5';}
+function showApproachOptions(loc){
+  currentLocation=loc;
+  document.getElementById('modalLocation').textContent=(loc.name||'LOCAL').toUpperCase();
+  const avatarLetter=(loc.witness&&loc.witness.avatar)||((loc.witness&&loc.witness.name)?loc.witness.name.charAt(0):'?');
+  document.getElementById('witnessAvatar').innerHTML='<img src="../img/testemunha-'+(loc.id||'unknown')+'.jpg" alt="" onerror="this.outerHTML=\''+avatarLetter+'\'">';
+  document.getElementById('witnessName').textContent=(loc.witness&&loc.witness.name)||'—';
+  document.getElementById('witnessRole').textContent=(loc.witness&&loc.witness.role)||'—';
+  document.getElementById('clueContainer').innerHTML='<div style="text-align:center;padding:20px;color:#666;font-style:italic;">Como deseja abordar '+((loc.witness&&loc.witness.name)||'a testemunha')+'?</div>';
+  document.getElementById('approachOptions').style.display='flex';
+  document.getElementById('modalActions').style.display='none';
+  document.getElementById('witnessModal').classList.add('active');
+  audio('playClick');
+}
+function consumeHour(cost){const res=window.NexusTime.consumeTime(cost,getCurrentTZ());if(res&&res.success){caseData.timeLimitHours=res.timeLeft;if(res.day)caseData.timeState.currentDay=res.day;if(res.exhausted){handleTimeExhausted();return false;}renderTimer();renderLocalTime();return true;}return true;}
+function handleApproach(approach){
+  if(!currentLocation)return;currentApproach=approach;
+  var perks={bribeCost:2,pressureRate:0.5,pressureNeverBurns:false};
+  try{var lvl=parseInt(localStorage.getItem(LEVEL_KEY)||'1',10);if(lvl>=3)perks.bribeCost=1;if(lvl>=4)perks.pressureRate=0.7;if(lvl>=5)perks.pressureNeverBurns=true;}catch(e){}
+  var costs={friendly:1,pressure:1.5,bribe:perks.bribeCost};var rates={friendly:0.7,pressure:perks.pressureRate,bribe:1.0};
+  if(!consumeHour(costs[approach]))return;
+  var success=Math.random()<rates[approach];
+  if(success){showToast('✓ Abordagem bem-sucedida!','success');audio('playSuccess');showClueResult(currentLocation);}
+  else{
+    if(approach==='pressure'&&!perks.pressureNeverBurns){showToast('😠 Testemunha se fechou. Local queimado!','error');audio('playError');if(!caseData.burnedLocations)caseData.burnedLocations=[];if(caseData.burnedLocations.indexOf(currentLocation.id)<0)caseData.burnedLocations.push(currentLocation.id);persist();closeModal(false);}
+    else if(approach==='pressure'&&perks.pressureNeverBurns){showToast('🛡️ Nível '+lvl+': local preservado, mas sem cooperação.','info');audio('playError');closeModal(false);}
+    else{showToast('🤔 Testemunha não cooperou. Tempo perdido.','error');audio('playError');closeModal(false);}
+  }
+  renderAll();
+}
+function showClueResult(loc){
+  document.getElementById('approachOptions').style.display='none';
+  document.getElementById('modalActions').style.display='flex';
+  const container=document.getElementById('clueContainer');
+  if(loc.hasClue){
+    let html='';
+    if(loc.geoClue)html+='<div class="clue-box"><div class="clue-label"><i class="fas fa-compass"></i> Pista Geográfica</div><div class="clue-text">'+loc.geoClue+'</div></div>';
+    if(loc.clueType==='positive'&&loc.idClue)html+='<div class="clue-box"><div class="clue-label"><i class="fas fa-fingerprint"></i> Pista de Identidade</div><div class="clue-text">'+loc.idClue+'</div></div>';
+    if(loc.clueType==='negative'&&loc.negClue)html+='<div class="clue-box negative"><div class="clue-label"><i class="fas fa-times-circle"></i> Pista Negativa (Exclusão)</div><div class="clue-text">'+loc.negClue+'</div></div>';
+    var cost=currentApproach==='friendly'?'1h':(currentApproach==='pressure'?'1.5h':'2h');
+    html+='<div class="time-spent-note"><i class="fas fa-clock"></i> '+cost+' consumida na abordagem</div>';
+    container.innerHTML=html;
+  } else {
+    container.innerHTML='<div class="no-clue"><i class="fas fa-comment-slash" style="color:var(--bronze);"></i>'+(loc.noClue||'Sem pistas.')+'</div><div class="time-spent-note"><i class="fas fa-clock"></i> Tempo consumido na abordagem</div>';
+  }
+}
+function closeModal(saveClue){
+  if(!currentLocation)return;const loc=currentLocation;
+  if(saveClue&&loc.hasClue){
+    if(!caseData.clues)caseData.clues={geo:[],id:[],neg:[]};
+    if(loc.geoClue&&!caseData.clues.geo.some(function(c){return c.text===loc.geoClue;}))caseData.clues.geo.push({text:loc.geoClue,source:loc.name});
+    if(loc.reveals&&loc.reveals.length){loc.reveals.forEach(function(cn){var cc=(caseData.cities||[]).filter(function(x){return x.name===cn;})[0];if(cc&&cc.revealed!==true){cc.revealed=true;setTimeout(function(){showToast('🗺️ Novo destino no globo: '+cn,'success');},400);}});}
+    if(loc.clueType==='positive'&&loc.idClue&&!caseData.clues.id.some(function(c){return c.text===loc.idClue;}))caseData.clues.id.push({text:loc.idClue,source:loc.name,idTrait:loc.idTrait});
+    if(loc.clueType==='negative'&&loc.negClue&&!caseData.clues.neg.some(function(c){return c.text===loc.negClue;}))caseData.clues.neg.push({text:loc.negClue,trait:loc.negTrait,source:loc.name});
+    showToast('✓ Pistas registradas no diário.','success');audio('playSuccess');
+  }
+  if(!caseData.locationsVisited)caseData.locationsVisited=[];
+  if(caseData.locationsVisited.indexOf(loc.id)<0)caseData.locationsVisited.push(loc.id);
+  persist();currentLocation=null;currentApproach=null;
+  document.getElementById('witnessModal').classList.remove('active');
+  renderAll();
+}
+function dismissWitness(){closeModal(false);}
+function saveClueAction(){closeModal(true);}
+// ⏰ TEMPO ESGOTOU = VILÃO FUGIU → caso vai pra lista de foragidos
+function handleTimeExhausted(){
+  Career.fail(caseData);
+  showToast('⏰ PRAZO ESGOTADO — O suspeito ESCAPOU! Caso reaberto futuramente.','error');
+  audio('playError');
+  setTimeout(function(){
+    try{localStorage.removeItem(STORAGE_KEY);localStorage.removeItem(WARRANT_KEY);}catch(e){}
+    window.location.href='02-hq.html';
+  },2800);
+}
+function toggleDrawer(){document.getElementById('cluesDrawer').classList.toggle('open');audio('playClick');}
+function openCrimeNet(){if((caseData.clues.id||[]).length<2){showToast('Colete ao menos 2 pistas de identidade. (atual: '+(caseData.clues.id||[]).length+')','error');return;}window.location.href='05-crimenet.html';}
+function startCapture(){if(!warrantData||!warrantData.correct){showToast('Mandado não emitido.','error');return;}const cur=(caseData.cities||[]).find(function(c){return c.current;});if(!cur||cur.name!==(warrantData.targetLocation&&warrantData.targetLocation.city)){showToast('O alvo não está nesta cidade.','error');return;}audio('playSuccess');showToast('Iniciando operação de captura...','success');setTimeout(function(){window.location.href='06-captura.html';},800);}
+function travelNext(){if(isEmptyCity){showToast('Volte ao globo para escolher outro destino.','error');return;}if((caseData.clues.geo||[]).length<1){showToast('Você não tem pistas sobre o destino.','error');return;}window.location.href='03-globo.html';}
+document.querySelectorAll('.approach-btn').forEach(function(btn){btn.addEventListener('click',function(){handleApproach(btn.dataset.approach);});});
+document.getElementById('btnDiary').addEventListener('click',toggleDrawer);
+document.getElementById('btnDrawerClose').addEventListener('click',toggleDrawer);
+document.getElementById('btnCrimeNet').addEventListener('click',openCrimeNet);
+document.getElementById('btnTravel').addEventListener('click',travelNext);
+document.getElementById('btnCapture').addEventListener('click',startCapture);
+document.getElementById('btnModalClose').addEventListener('click',dismissWitness);
+document.getElementById('btnModalDismiss').addEventListener('click',dismissWitness);
+document.getElementById('btnSaveClue').addEventListener('click',saveClueAction);
+document.getElementById('witnessModal').addEventListener('click',function(e){if(e.target.id==='witnessModal')dismissWitness();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){dismissWitness();document.getElementById('cluesDrawer').classList.remove('open');}if(e.ctrlKey&&e.shiftKey&&e.key==='R'){if(confirm('⚠️ Reiniciar caso?')){localStorage.removeItem(STORAGE_KEY);location.reload();}}});
+renderAll();
+console.log('[M:I NEXUS] 04-cidade v8.0 — Fuga/Prisão/Reabertura | Caso:',caseData.id);
+})();
+</script>
+</body>
+</html>

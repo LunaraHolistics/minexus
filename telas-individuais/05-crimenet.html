@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CrimeNet — PROJETO M:I</title>
+<link rel="icon" type="image/png" href="../favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--surface:#0a0d12;--on:#e5e2e1;--onv:#c1c7cc;--gold:#C5A059;--goldl:#e9c176;--bronze:#CD7F32;--amber:#FFBF00;--petrol:#003344;--ivory:#F5F5DC;--red:#ef4444;--green:#4ade80;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--surface);font-family:'Manrope',sans-serif;color:var(--on);}
+.crime-bg{position:fixed;inset:0;z-index:1;background:radial-gradient(ellipse at 30% 20%,rgba(0,51,68,.4) 0%,transparent 50%),radial-gradient(ellipse at 70% 80%,rgba(197,160,89,.08) 0%,transparent 50%),linear-gradient(180deg,#0a0d12 0%,#0f1419 50%,#0a0d12 100%);}
+.grid-overlay{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.08;background-image:linear-gradient(rgba(197,160,89,.3) 1px,transparent 1px),linear-gradient(90deg,rgba(197,160,89,.3) 1px,transparent 1px);background-size:40px 40px;}
+.film-grain{position:fixed;inset:0;z-index:3;pointer-events:none;opacity:.06;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");mix-blend-mode:overlay;}
+.scanlines{position:fixed;inset:0;z-index:4;pointer-events:none;opacity:.12;background:repeating-linear-gradient(0deg,rgba(0,0,0,.3) 0,rgba(0,0,0,.3) 1px,transparent 1px,transparent 3px);}
+.vignette{position:fixed;inset:0;z-index:5;pointer-events:none;box-shadow:inset 0 0 200px rgba(0,0,0,.85);}
+.ui{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;pointer-events:none;}
+.ui>*{pointer-events:auto;}
+.crime-header{padding:20px 32px;background:linear-gradient(180deg,rgba(10,13,18,.95) 0%,rgba(10,13,18,.6) 70%,transparent 100%);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;}
+.crime-title{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:.25em;text-transform:uppercase;display:flex;align-items:center;gap:12px;}
+.crime-title i{color:var(--amber);}
+.crime-meta{display:flex;gap:12px;flex-wrap:wrap;}
+.meta-chip{padding:6px 14px;border:.5px solid var(--gold);background:rgba(0,51,68,.3);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);}
+.meta-chip.timer{color:var(--amber);}
+.meta-chip.timer.critical{color:var(--red);border-color:var(--red);}
+.crime-main{flex:1;display:flex;gap:20px;padding:20px 32px;overflow:hidden;}
+.left-panel{width:360px;display:flex;flex-direction:column;gap:16px;overflow-y:auto;}
+.left-panel::-webkit-scrollbar{width:4px;}
+.left-panel::-webkit-scrollbar-thumb{background:var(--gold);border-radius:2px;}
+.panel-box{background:rgba(10,13,18,.8);border:1px solid rgba(197,160,89,.3);padding:20px;}
+.panel-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:.2em;text-transform:uppercase;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid rgba(197,160,89,.3);}
+.clue-item{background:rgba(0,51,68,.3);border-left:2px solid var(--gold);padding:10px 12px;margin-bottom:8px;font-family:'Libre Caslon Text',serif;font-style:italic;font-size:12px;color:var(--ivory);line-height:1.5;}
+.clue-item.negative{border-left-color:var(--red);background:rgba(239,68,68,.1);}
+.clue-item.negative::before{content:'✗ ';color:var(--red);font-weight:700;font-style:normal;}
+.clue-source{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--bronze);letter-spacing:.1em;text-transform:uppercase;margin-top:4px;font-style:normal;}
+.no-clues{font-family:'Manrope',sans-serif;font-size:12px;color:var(--onv);font-style:italic;opacity:.6;text-align:center;padding:20px;}
+.filter-btn{display:block;width:100%;margin-bottom:8px;padding:10px 14px;background:rgba(0,51,68,.4);border:1px solid rgba(197,160,89,.4);color:var(--onv);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .3s;text-align:left;}
+.filter-btn:hover{border-color:var(--gold);color:var(--goldl);}
+.filter-btn.active{background:var(--gold);color:var(--surface);border-color:var(--gold);}
+.filter-btn.neg{border-color:rgba(239,68,68,.4);}
+.filter-btn.neg.active{background:var(--red);border-color:var(--red);}
+.filter-btn:disabled{opacity:.3;cursor:not-allowed;}
+.suspects-panel{flex:1;display:flex;flex-direction:column;gap:16px;overflow-y:auto;}
+.suspects-panel::-webkit-scrollbar{width:4px;}
+.suspects-panel::-webkit-scrollbar-thumb{background:var(--gold);border-radius:2px;}
+.suspect-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;}
+.suspect-card{background:rgba(10,13,18,.85);border:1px solid rgba(197,160,89,.3);overflow:hidden;position:relative;transition:all .3s;cursor:pointer;display:flex;flex-direction:column;}
+.suspect-card:hover:not(.eliminated){border-color:var(--gold);transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.6),0 0 18px rgba(197,160,89,.2);}
+.suspect-card.eliminated{opacity:.35;border-color:rgba(197,160,89,.15);cursor:not-allowed;filter:grayscale(.7);}
+.suspect-card.eliminated::after{content:'ELIMINADO';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-18deg);font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--red);letter-spacing:.25em;border:2px solid var(--red);padding:6px 16px;opacity:.7;z-index:5;pointer-events:none;text-shadow:0 0 8px rgba(0,0,0,.9);}
+.suspect-card.imprisoned{opacity:.4;filter:grayscale(.8);cursor:not-allowed;}
+.imprisoned-tag{position:absolute;top:8px;right:8px;background:var(--red);color:#fff;font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:700;letter-spacing:.2em;padding:3px 8px;z-index:5;}
+.suspect-card.target{border-color:var(--amber);box-shadow:0 0 24px rgba(255,191,0,.4);}
+.suspect-card.target::before{content:'ALVO';position:absolute;top:10px;right:10px;background:var(--red);color:#fff;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.2em;padding:4px 10px;z-index:5;box-shadow:0 2px 8px rgba(0,0,0,.6);}
+.suspect-portrait{width:100%;height:180px;position:relative;overflow:hidden;background:linear-gradient(180deg,#1a1f28 0%,#0a0d12 100%);}
+.suspect-portrait img{width:100%;height:100%;object-fit:cover;filter:saturate(.85) contrast(1.1) brightness(.95);transition:transform .4s;}
+.suspect-card:hover:not(.eliminated) .suspect-portrait img{transform:scale(1.05);}
+.suspect-portrait .avatar-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Libre Caslon Text',serif;font-size:64px;color:var(--gold);background:linear-gradient(180deg,rgba(0,51,68,.5) 0%,rgba(10,13,18,.9) 100%);}
+.suspect-portrait::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(10,13,18,.95) 100%);pointer-events:none;}
+.suspect-card.target .suspect-portrait{box-shadow:inset 0 0 30px rgba(255,191,0,.3);}
+.suspect-body{padding:14px 16px 16px;flex:1;display:flex;flex-direction:column;}
+.suspect-name{font-family:'Libre Caslon Text',serif;font-size:16px;font-weight:700;color:var(--goldl);margin-bottom:2px;}
+.suspect-alias{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--bronze);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;font-style:italic;}
+.suspect-traits{font-family:'Manrope',sans-serif;font-size:11px;color:var(--onv);line-height:1.6;margin-top:auto;}
+.suspect-traits span{display:inline-block;background:rgba(197,160,89,.08);border:1px solid rgba(197,160,89,.2);padding:2px 8px;border-radius:2px;margin:2px 3px 2px 0;font-size:10px;color:var(--on);}
+.crime-footer{padding:16px 32px;background:linear-gradient(0deg,rgba(10,13,18,.95) 0%,rgba(10,13,18,.6) 70%,transparent 100%);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.crime-btn{padding:12px 22px;background:rgba(0,51,68,.4);border:1px solid var(--gold);color:var(--goldl);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .3s;display:flex;align-items:center;gap:10px;text-decoration:none;}
+.crime-btn:hover{background:var(--gold);color:var(--surface);}
+.crime-btn.primary{background:var(--gold);color:var(--surface);font-weight:700;}
+.crime-btn.primary:hover{background:var(--amber);box-shadow:0 0 30px rgba(255,191,0,.5);}
+.crime-btn:disabled{opacity:.3;cursor:not-allowed;pointer-events:none;}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--petrol);border:1px solid var(--gold);padding:14px 24px;z-index:150;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--goldl);letter-spacing:.1em;opacity:0;transition:all .3s;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.error{border-color:var(--red);color:#fecaca;}
+.toast.success{border-color:var(--green);color:#bbf7d0;}
+@media (max-width:768px){.crime-main{flex-direction:column;}.left-panel{width:100%;max-height:40%;}.suspect-grid{grid-template-columns:1fr;}.crime-header,.crime-footer{padding:16px 20px;}}
+</style>
+</head>
+<body>
+<div class="crime-bg"></div><div class="grid-overlay"></div><div class="film-grain"></div><div class="scanlines"></div><div class="vignette"></div>
+<div class="ui">
+  <div class="crime-header">
+    <div class="crime-title"><i class="fas fa-database"></i> CRIMENET v6.0 — TERMINAL DE IDENTIFICAÇÃO</div>
+    <div class="crime-meta"><div class="meta-chip timer" id="timerChip"><i class="fas fa-clock"></i> <span id="timerText">--</span></div></div>
+  </div>
+  <div class="crime-main">
+    <div class="left-panel">
+      <div class="panel-box">
+        <div class="panel-title"><i class="fas fa-fingerprint"></i> Pistas de Identidade</div>
+        <div id="cluesList"></div>
+      </div>
+      <div class="panel-box">
+        <div class="panel-title"><i class="fas fa-filter"></i> Análise — Aplicar Filtros</div>
+        <div id="filterList"></div>
+      </div>
+    </div>
+    <div class="suspects-panel">
+      <div class="panel-box">
+        <div class="panel-title"><i class="fas fa-users"></i> Banco Central — Suspeitos <span id="suspectCount" style="color:var(--amber);margin-left:8px;">0/16</span></div>
+        <div class="suspect-grid" id="suspectGrid"></div>
+      </div>
+    </div>
+  </div>
+  <div class="crime-footer">
+    <a href="04-cidade.html" class="crime-btn"><i class="fas fa-arrow-left"></i> Voltar</a>
+    <button class="crime-btn primary" id="btnIssueWarrant" disabled><i class="fas fa-gavel"></i> Emitir Mandado</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="../database.js"></script>
+<script>
+(function(global){'use strict';
+const CASE_KEY='minexus_case_001';
+const DEFAULT_TIME_STATE={timeLimitHours:48,currentHour:9,currentDay:1,currentCityTZ:'UTC-5'};
+function loadCase(){try{const s=localStorage.getItem(CASE_KEY);return s?JSON.parse(s):null;}catch(e){return null;}}
+function saveCase(d){try{localStorage.setItem(CASE_KEY,JSON.stringify(d));}catch(e){}}
+function formatTimeLeft(h){if(h<=0)return 'ESGOTADO';const d=Math.floor(h/24),hh=Math.floor(h%24),m=Math.floor((h-Math.floor(h))*60);if(d>0)return d+'d '+hh+'h';if(hh>0)return hh+'h '+m+'min';return m+'min';}
+function consumeTime(hours,cityTZ){if(hours<=0)return{success:false};const d=loadCase();if(!d)return{success:false};if(!d.timeState)d.timeState={...DEFAULT_TIME_STATE};if(typeof d.timeLimitHours!=='number')d.timeLimitHours=d.timeState.timeLimitHours;let nh=d.timeState.currentHour+hours;let ov=0;while(nh>=24){nh-=24;ov++;}d.timeState.currentHour=nh;d.timeState.currentDay+=ov;d.timeLimitHours=Math.max(0,d.timeLimitHours-hours);d.timeState.timeLimitHours=d.timeLimitHours;if(cityTZ)d.timeState.currentCityTZ=cityTZ;saveCase(d);return{success:true,timeLeft:d.timeLimitHours,exhausted:d.timeLimitHours<=0};}
+global.NexusTime={consumeTime,formatTimeLeft};
+})(window);
+</script>
+<script src="../audio-system.js" defer></script>
+<script>
+(function(){'use strict';
+const CASE_KEY='minexus_case_001', WARRANT_KEY='minexus_warrant';
+var Career={
+  get:function(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v==null?d:v;}catch(e){return d;}},
+  getPrison:function(){return this.get('minexus_prison',[]);},
+  isImprisoned:function(id){return this.getPrison().some(function(x){return x.id===id;});}
+};
+const DB=window.NEXUS_DATABASE;
+let caseData; try{caseData=JSON.parse(localStorage.getItem(CASE_KEY)||'null');}catch(e){}
+if(!caseData){alert('Nenhum caso ativo.');window.location.href='02-hq.html';return;}
+if(!DB){alert('database.js não carregado.');window.location.href='02-hq.html';return;}
+
+// ✅ Funciona com casos gerados (GER_x) E estáticos
+const suspects=Array.isArray(DB.suspects)?DB.suspects:Object.values(DB.suspects||{});
+function norm(s){return (s||'').trim().toLowerCase();}
+function sid(s){return (s.id||'').trim();}
+
+let appliedFilters=[]; let selectedTarget=null;
+
+function audio(ev){try{if(window.ArchiveAudio&&typeof window.ArchiveAudio[ev]==='function')window.ArchiveAudio[ev]();}catch(e){}}
+let toastTimer;
+function showToast(msg,type='info'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type!=='info'?' '+type:'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3000);}
+function syncTimer(){const el=document.getElementById('timerText');const chip=document.getElementById('timerChip');const h=caseData.timeLimitHours||0;el.textContent=window.NexusTime.formatTimeLeft(h);chip.classList.toggle('critical',h<=12);}
+
+function getAllLocs(){
+  var arr=[];
+  if(caseData.locations){Object.keys(caseData.locations).forEach(function(k){arr=arr.concat(caseData.locations[k]||[]);});}
+  var caseDb=DB.cases&&DB.cases[caseData.id];
+  if(caseDb&&caseDb.locations){Object.keys(caseDb.locations).forEach(function(k){arr=arr.concat(caseDb.locations[k]||[]);});}
+  return arr;
+}
+function getCollectedTraits(){
+  const pos=[],neg=[];
+  const allLocs=getAllLocs();
+  (caseData.clues?.id||[]).forEach(c=>{
+    let t=(c.idTrait||'').trim();
+    if(!t){const loc=allLocs.find(l=>(l.idClue||'').trim()===(c.text||'').trim());if(loc)t=(loc.idTrait||'').trim();}
+    if(t&&!pos.some(x=>norm(x)===norm(t)))pos.push(t);
+  });
+  (caseData.clues?.neg||[]).forEach(c=>{
+    let t=(c.negTrait||c.trait||'').trim();
+    if(!t){const loc=allLocs.find(l=>(l.negClue||'').trim()===(c.text||'').trim());if(loc)t=(loc.negTrait||'').trim();}
+    if(t&&!neg.some(x=>norm(x)===norm(t)))neg.push(t);
+  });
+  return {pos,neg};
+}
+function appliedTraits(){const pos=[],neg=[];appliedFilters.forEach(f=>{if(f.type==='pos')pos.push(f.trait);else neg.push(f.trait);});return{pos,neg};}
+function remainingSuspects(){
+  const {pos,neg}=appliedTraits();
+  return suspects.filter(s=>{
+    if(Career.isImprisoned(sid(s)))return false; // ⛓️ preso não pode ser alvo
+    const traits=(s.traits||[]).map(norm);
+    for(const t of pos)if(!traits.includes(norm(t)))return false;
+    for(const t of neg)if(traits.includes(norm(t)))return false;
+    return true;
+  });
+}
+
+function renderClues(){
+  const list=document.getElementById('cluesList');
+  const id=caseData.clues?.id||[],neg=caseData.clues?.neg||[];
+  if(id.length===0&&neg.length===0){list.innerHTML='<div class="no-clues">Nenhuma pista de identidade coletada.<br>Investigue locais na cidade.</div>';return;}
+  let html='';
+  id.forEach(c=>{html+=`<div class="clue-item">${c.idClue||c.text}<div class="clue-source">— ${c.source}</div></div>`;});
+  neg.forEach(c=>{html+=`<div class="clue-item negative">${c.negClue||c.text}<div class="clue-source">— ${c.source}</div></div>`;});
+  list.innerHTML=html;
+}
+
+function renderFilters(){
+  const box=document.getElementById('filterList');
+  const {pos,neg}=getCollectedTraits();
+  if(pos.length===0&&neg.length===0){box.innerHTML='<div class="no-clues">Colete pistas para desbloquear filtros de análise.</div>';return;}
+  let html='';
+  pos.forEach(t=>{
+    const active=appliedFilters.some(f=>f.type==='pos'&&norm(f.trait)===norm(t));
+    html+=`<button class="filter-btn ${active?'active':''}" data-type="pos" data-trait="${t}" ${active?'disabled':''}>✓ ${t}</button>`;
+  });
+  neg.forEach(t=>{
+    const active=appliedFilters.some(f=>f.type==='neg'&&norm(f.trait)===norm(t));
+    html+=`<button class="filter-btn neg ${active?'active':''}" data-type="neg" data-trait="${t}" ${active?'disabled':''}>✗ NÃO ${t}</button>`;
+  });
+  box.innerHTML=html;
+  box.querySelectorAll('.filter-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const trait=btn.dataset.trait,type=btn.dataset.type;
+      const res=window.NexusTime.consumeTime(0.33,caseData.timeState?.currentCityTZ||'UTC-5');
+      if(res&&res.success){caseData.timeLimitHours=res.timeLeft;syncTimer();if(res.exhausted){showToast('⏰ PRAZO ESGOTADO!','error');setTimeout(()=>window.location.href='02-hq.html',2000);return;}}
+      appliedFilters.push({type,trait});
+      renderAll();audio('playClick');
+      showToast(`Filtro aplicado: ${type==='pos'?'✓':'✗'} ${trait}`,'success');
+    });
+  });
+}
+
+function renderSuspects(){
+  const grid=document.getElementById('suspectGrid');
+  const rem=remainingSuspects();
+  document.getElementById('suspectCount').textContent=`${rem.length}/${suspects.length}`;
+  if(rem.length===0){grid.innerHTML='<div class="no-clues" style="grid-column:1/-1;">CONTRADIÇÃO! Nenhum suspeito corresponde. Revise as pistas.</div>';return;}
+  grid.innerHTML=suspects.map(s=>{
+    const id=sid(s);
+    const isImp=Career.isImprisoned(id);
+    const isOut=!rem.includes(s);
+    const isTarget=selectedTarget===id;
+    let portraitHTML='';
+    if(s.portrait){
+      portraitHTML=`<div class="suspect-portrait"><img src="${s.portrait}" alt="${s.name}" onerror="this.parentElement.innerHTML='<div class=\\'avatar-fallback\\'>${s.initial}</div>'"></div>`;
+    } else {
+      portraitHTML=`<div class="suspect-portrait"><div class="avatar-fallback">${s.initial}</div></div>`;
+    }
+    const traitsHTML=(s.traits||[]).map(t=>`<span>${t}</span>`).join('');
+    return `<div class="suspect-card ${isImp?'imprisoned':(isOut?'eliminated':'')} ${isTarget?'target':''}" data-id="${id}">
+      ${isImp?'<div class="imprisoned-tag">⛓️ PRESO</div>':''}
+      ${portraitHTML}
+      <div class="suspect-body">
+        <div class="suspect-name">${s.name}</div>
+        <div class="suspect-alias">"${s.alias}"</div>
+        <div class="suspect-traits">${traitsHTML}</div>
+      </div>
+    </div>`;
+  }).join('');
+  grid.querySelectorAll('.suspect-card:not(.eliminated):not(.imprisoned)').forEach(card=>{
+    card.addEventListener('click',()=>{
+      if(rem.length>1){showToast('Elimine mais suspeitos antes de escolher o alvo.','error');return;}
+      selectedTarget=card.dataset.id;renderSuspects();audio('playClick');updateWarrantButton();
+    });
+  });
+}
+
+function updateWarrantButton(){
+  const btn=document.getElementById('btnIssueWarrant');
+  const rem=remainingSuspects();
+  btn.disabled=!(rem.length===1&&selectedTarget===sid(rem[0]));
+}
+function renderAll(){renderClues();renderFilters();renderSuspects();updateWarrantButton();}
+
+document.getElementById('btnIssueWarrant').addEventListener('click',()=>{
+  const rem=remainingSuspects();
+  if(rem.length!==1){showToast('Reduza a 1 suspeito.','error');return;}
+  const target=rem[0];
+  const res=window.NexusTime.consumeTime(1,caseData.timeState?.currentCityTZ||'UTC-5');
+  if(res&&res.success){caseData.timeLimitHours=res.timeLeft;syncTimer();}
+  const home=target.home||{city:'Paris',country:'França'};
+  const targetLocation=(caseData.culprit&&sid(caseData.culprit)===sid(target)&&caseData.culprit.location)?caseData.culprit.location:home;
+  try{localStorage.setItem(WARRANT_KEY,JSON.stringify({correct:true,targetId:sid(target),targetName:target.name,targetLocation:targetLocation}));}catch(e){}
+  // 🗺️ Mandado revela a cidade da captura no globo
+  var capCity=targetLocation&&targetLocation.city;
+  (caseData.cities||[]).forEach(function(c){if(c.name===capCity)c.revealed=true;});
+  try{localStorage.setItem(CASE_KEY,JSON.stringify(caseData));}catch(e){}
+  audio('playSuccess');showToast(`✓ Mandado emitido contra ${target.name}`,'success');
+  const curCity=(caseData.cities||[]).find(c=>c.current);
+  const alreadyThere=curCity&&curCity.name===targetLocation.city;
+  setTimeout(()=>{window.location.href=alreadyThere?'04-cidade.html':'03-globo.html';},1500);
+});
+
+syncTimer();renderAll();
+console.log('[CRIMENET] v7.0 — presos excluídos + casos gerados | Suspeitos:',suspects.length);
+})();
+</script>
+</body>
+</html>

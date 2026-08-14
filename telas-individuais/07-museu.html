@@ -1,0 +1,894 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Museu — PROJETO M:I</title>
+    <link rel="icon" type="image/png" href="../favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Manrope:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <style>
+      :root {
+        --surface: #0a0d12;
+        --on: #e5e2e1;
+        --onv: #c1c7cc;
+        --gold: #c5a059;
+        --goldl: #e9c176;
+        --bronze: #cd7f32;
+        --amber: #ffbf00;
+        --petrol: #003344;
+        --ivory: #f5f5dc;
+        --green: #4ade80;
+        --velvet: #1a0f14;
+        --level-up: #ffd700;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--surface);
+        font-family: "Manrope", sans-serif;
+        color: var(--on);
+      }
+      .museum-bg {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        background:
+          radial-gradient(
+            ellipse at 50% 0%,
+            rgba(197, 160, 89, 0.18) 0%,
+            transparent 55%
+          ),
+          radial-gradient(
+            ellipse at 20% 100%,
+            rgba(26, 15, 20, 0.6) 0%,
+            transparent 60%
+          ),
+          radial-gradient(
+            ellipse at 80% 100%,
+            rgba(26, 15, 20, 0.6) 0%,
+            transparent 60%
+          ),
+          linear-gradient(180deg, #0a0d12 0%, #12100e 50%, #0a0d12 100%);
+      }
+      .spotlight {
+        position: fixed;
+        top: -10%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 600px;
+        height: 70%;
+        z-index: 2;
+        pointer-events: none;
+        background: radial-gradient(
+          ellipse at 50% 0%,
+          rgba(255, 220, 150, 0.12) 0%,
+          transparent 70%
+        );
+      }
+      .dust {
+        position: fixed;
+        inset: 0;
+        z-index: 3;
+        pointer-events: none;
+        opacity: 0.3;
+        background-image:
+          radial-gradient(
+            1px 1px at 20% 30%,
+            rgba(255, 255, 255, 0.3) 0%,
+            transparent 100%
+          ),
+          radial-gradient(
+            1px 1px at 60% 70%,
+            rgba(255, 255, 255, 0.2) 0%,
+            transparent 100%
+          ),
+          radial-gradient(
+            1px 1px at 80% 20%,
+            rgba(255, 255, 255, 0.25) 0%,
+            transparent 100%
+          );
+        animation: dust-float 20s linear infinite;
+      }
+      @keyframes dust-float {
+        from {
+          background-position: 0 0;
+        }
+        to {
+          background-position: 50px 100px;
+        }
+      }
+      .film-grain {
+        position: fixed;
+        inset: 0;
+        z-index: 4;
+        pointer-events: none;
+        opacity: 0.08;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+        mix-blend-mode: overlay;
+      }
+      .scanlines {
+        position: fixed;
+        inset: 0;
+        z-index: 5;
+        pointer-events: none;
+        opacity: 0.1;
+        background: repeating-linear-gradient(
+          0deg,
+          rgba(0, 0, 0, 0.3) 0,
+          rgba(0, 0, 0, 0.3) 1px,
+          transparent 1px,
+          transparent 3px
+        );
+      }
+      .vignette {
+        position: fixed;
+        inset: 0;
+        z-index: 6;
+        pointer-events: none;
+        box-shadow: inset 0 0 200px rgba(0, 0, 0, 0.9);
+      }
+      .ui {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        pointer-events: none;
+      }
+      .ui > * {
+        pointer-events: auto;
+      }
+      .museum-header {
+        text-align: center;
+        padding: 28px 32px 20px;
+        background: linear-gradient(
+          180deg,
+          rgba(10, 13, 18, 0.95) 0%,
+          rgba(10, 13, 18, 0.6) 70%,
+          transparent 100%
+        );
+      }
+      .museum-eyebrow {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--gold);
+        letter-spacing: 0.4em;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+      .museum-title {
+        font-family: "Libre Caslon Text", serif;
+        font-size: 34px;
+        font-weight: 700;
+        color: var(--goldl);
+      }
+      .museum-subtitle {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--onv);
+        letter-spacing: 0.15em;
+        margin-top: 6px;
+      }
+      .museum-stats {
+        display: flex;
+        justify-content: center;
+        gap: 24px;
+        margin-top: 16px;
+        flex-wrap: wrap;
+      }
+      .stat-chip {
+        padding: 6px 16px;
+        border: 0.5px solid var(--gold);
+        background: rgba(0, 51, 68, 0.3);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--gold);
+      }
+      .stat-chip b {
+        color: var(--amber);
+      }
+      .stat-chip.level {
+        border-color: var(--level-up);
+        background: rgba(255, 215, 0, 0.15);
+        color: var(--level-up);
+      }
+      .museum-main {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        overflow-y: auto;
+        pointer-events: none;
+      }
+      .museum-content {
+        max-width: 900px;
+        width: 100%;
+        pointer-events: auto;
+      }
+      .certificate {
+        background: rgba(10, 13, 18, 0.85);
+        backdrop-filter: blur(16px);
+        border: 1px solid var(--gold);
+        padding: 32px;
+        margin-bottom: 32px;
+        position: relative;
+        box-shadow:
+          0 30px 80px rgba(0, 0, 0, 0.7),
+          0 0 0 1px rgba(197, 160, 89, 0.2);
+      }
+      .cert-badge {
+        position: absolute;
+        top: -14px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--gold);
+        color: var(--surface);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        padding: 6px 18px;
+      }
+      .cert-heading {
+        font-family: "Libre Caslon Text", serif;
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--goldl);
+        text-align: center;
+        margin: 12px 0 4px;
+      }
+      .cert-sub {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--onv);
+        text-align: center;
+        letter-spacing: 0.1em;
+        margin-bottom: 24px;
+      }
+      .cert-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+      }
+      .cert-item {
+        background: rgba(0, 51, 68, 0.3);
+        border-left: 2px solid var(--gold);
+        padding: 12px 14px;
+      }
+      .cert-label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        color: var(--bronze);
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+      }
+      .cert-value {
+        font-family: "Manrope", sans-serif;
+        font-size: 14px;
+        color: var(--ivory);
+        font-weight: 600;
+      }
+      .cert-value.success {
+        color: var(--green);
+      }
+      .cert-value.rating {
+        color: var(--amber);
+        font-family: "Libre Caslon Text", serif;
+        font-size: 26px;
+        font-weight: 700;
+        text-shadow: 0 0 15px rgba(255, 191, 0, 0.4);
+      }
+      .detido-box {
+        margin-top: 20px;
+        padding: 16px 20px;
+        background: rgba(239, 68, 68, 0.06);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        display: flex;
+        gap: 16px;
+        align-items: center;
+      }
+      .detido-mug {
+        width: 70px;
+        height: 70px;
+        background: var(--petrol);
+        border: 2px solid var(--red);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Libre Caslon Text", serif;
+        font-size: 26px;
+        color: var(--gold);
+        flex-shrink: 0;
+        overflow: hidden;
+      }
+      .detido-mug img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: top;
+      }
+      .detido-name {
+        font-family: "Libre Caslon Text", serif;
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--goldl);
+      }
+      .detido-quote {
+        font-family: "Libre Caslon Text", serif;
+        font-style: italic;
+        font-size: 12px;
+        color: var(--onv);
+        margin-top: 4px;
+      }
+      .level-up-banner {
+        margin-top: 20px;
+        padding: 18px 24px;
+        background: linear-gradient(
+          135deg,
+          rgba(255, 215, 0, 0.15),
+          rgba(255, 191, 0, 0.08)
+        );
+        border: 2px solid var(--level-up);
+        text-align: center;
+        animation: glow-level 2s ease-in-out infinite;
+        position: relative;
+        overflow: hidden;
+      }
+      .level-up-banner::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(
+          45deg,
+          transparent 30%,
+          rgba(255, 215, 0, 0.1) 50%,
+          transparent 70%
+        );
+        animation: shimmer 3s linear infinite;
+      }
+      @keyframes shimmer {
+        0% {
+          transform: translateX(-100%) translateY(-100%);
+        }
+        100% {
+          transform: translateX(100%) translateY(100%);
+        }
+      }
+      @keyframes glow-level {
+        0%,
+        100% {
+          box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+        50% {
+          box-shadow: 0 0 40px rgba(255, 215, 0, 0.6);
+        }
+      }
+      .level-up-title {
+        font-family: "Libre Caslon Text", serif;
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--level-up);
+        margin-bottom: 8px;
+        text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+      }
+      .level-up-level {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 36px;
+        font-weight: 700;
+        color: var(--level-up);
+        margin-bottom: 12px;
+        text-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+      }
+      .level-up-bonus {
+        font-family: "Manrope", sans-serif;
+        font-size: 13px;
+        color: var(--ivory);
+        line-height: 1.6;
+      }
+      .level-up-bonus strong {
+        color: var(--level-up);
+      }
+      .gallery-title {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--gold);
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .gallery-title::before {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--gold));
+      }
+      .gallery-title::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(90deg, var(--gold), transparent);
+      }
+      .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 20px;
+      }
+      .vitrine {
+        background: linear-gradient(
+          180deg,
+          rgba(26, 15, 20, 0.4),
+          rgba(10, 13, 18, 0.8)
+        );
+        border: 1px solid rgba(197, 160, 89, 0.4);
+        padding: 24px 20px 20px;
+        text-align: center;
+        position: relative;
+        transition: all 0.4s;
+        cursor: pointer;
+      }
+      .vitrine:hover {
+        border-color: var(--gold);
+        transform: translateY(-6px);
+        box-shadow:
+          0 20px 50px rgba(0, 0, 0, 0.6),
+          0 0 30px rgba(197, 160, 89, 0.15);
+      }
+      .vitrine::before {
+        content: "";
+        position: absolute;
+        inset: 8px;
+        border: 1px solid rgba(197, 160, 89, 0.15);
+        pointer-events: none;
+      }
+      .vitrine.latest {
+        border-color: var(--amber);
+        box-shadow: 0 0 40px rgba(255, 191, 0, 0.2);
+        animation: entrance 0.8s ease-out;
+      }
+      @keyframes entrance {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .vitrine.latest::after {
+        content: "RECÉM-RECUPERADO";
+        position: absolute;
+        top: -10px;
+        right: 12px;
+        background: var(--amber);
+        color: var(--surface);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 8px;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        padding: 4px 10px;
+      }
+      .artifact-display {
+        width: 110px;
+        height: 110px;
+        margin: 0 auto 16px;
+        background: radial-gradient(
+          ellipse at center,
+          rgba(197, 160, 89, 0.2) 0%,
+          transparent 70%
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+      .artifact-display .glow {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          ellipse at 50% 30%,
+          rgba(255, 220, 150, 0.3) 0%,
+          transparent 60%
+        );
+        animation: glow-pulse 3s ease-in-out infinite;
+      }
+      @keyframes glow-pulse {
+        0%,
+        100% {
+          opacity: 0.5;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+      .artifact-emoji {
+        position: relative;
+        z-index: 2;
+        font-size: 56px;
+        filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.8));
+        animation: float-soft 4s ease-in-out infinite;
+      }
+      .artifact-img {
+        position: relative;
+        z-index: 2;
+        width: 110px;
+        height: 110px;
+        object-fit: cover;
+        border-radius: 4px;
+        border: 1px solid rgba(197, 160, 89, 0.4);
+        filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.8));
+        animation: float-soft 4s ease-in-out infinite;
+      }
+      @keyframes float-soft {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-6px);
+        }
+      }
+      .artifact-name {
+        font-family: "Libre Caslon Text", serif;
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--goldl);
+        margin-bottom: 4px;
+      }
+      .artifact-origin {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--onv);
+        letter-spacing: 0.1em;
+        margin-bottom: 12px;
+      }
+      .artifact-plaque {
+        margin-top: 12px;
+        padding: 10px 12px;
+        background: rgba(0, 0, 0, 0.4);
+        border-top: 1px solid rgba(197, 160, 89, 0.2);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        color: var(--bronze);
+        letter-spacing: 0.08em;
+        line-height: 1.6;
+        text-transform: uppercase;
+      }
+      .artifact-plaque em {
+        opacity: 0.75;
+        text-transform: none;
+      }
+      .museum-footer {
+        padding: 16px 32px;
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        background: linear-gradient(
+          0deg,
+          rgba(10, 13, 18, 0.95) 0%,
+          rgba(10, 13, 18, 0.6) 70%,
+          transparent 100%
+        );
+      }
+      .museum-btn {
+        padding: 14px 28px;
+        background: rgba(0, 51, 68, 0.4);
+        border: 1px solid var(--gold);
+        color: var(--goldl);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+      }
+      .museum-btn:hover {
+        background: var(--gold);
+        color: var(--surface);
+      }
+      .museum-btn.primary {
+        background: var(--gold);
+        color: var(--surface);
+        font-weight: 700;
+      }
+      .museum-btn.primary:hover {
+        background: var(--amber);
+        box-shadow: 0 0 30px rgba(255, 191, 0, 0.5);
+      }
+      @media (max-width: 768px) {
+        .museum-title {
+          font-size: 26px;
+        }
+        .certificate {
+          padding: 24px 20px;
+        }
+        .gallery-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="museum-bg"></div>
+    <div class="spotlight"></div>
+    <div class="dust"></div>
+    <div class="film-grain"></div>
+    <div class="scanlines"></div>
+    <div class="vignette"></div>
+    <div class="ui">
+      <div class="museum-header">
+        <div class="museum-eyebrow">ARQUIVO NEXUS • COLEÇÃO PERMANENTE</div>
+        <div class="museum-title">Sala de Troféus</div>
+        <div class="museum-subtitle">
+          Artefatos recuperados pela Divisão de Crimes Contra o Patrimônio
+        </div>
+        <div class="museum-stats">
+          <div class="stat-chip">Artefatos: <b id="statCount">0</b></div>
+          <div class="stat-chip">Casos Encerrados: <b id="statCases">0</b></div>
+          <div class="stat-chip">S-Rank: <b id="statSRank">0</b></div>
+          <div class="stat-chip level">
+            <i class="fas fa-star"></i> Nível: <b id="statLevel">1</b>
+          </div>
+        </div>
+      </div>
+      <div class="museum-main">
+        <div class="museum-content" id="museumContent"></div>
+      </div>
+      <div class="museum-footer">
+        <button class="museum-btn" onclick="history.back()">
+          <i class="fas fa-arrow-left"></i> Voltar
+        </button>
+        <button class="museum-btn primary" id="btnNewMission">
+          <i class="fas fa-briefcase"></i> Nova Missão
+        </button>
+      </div>
+    </div>
+
+    <script src="../database.js"></script>
+    <script src="../audio-system.js" defer></script>
+    <script>
+      (function () {
+        "use strict";
+        const CASE_KEY = "minexus_case_001",
+          WARRANT_KEY = "minexus_warrant",
+          CAPTURE_KEY = "minexus_capture_result",
+          COLLECTION_KEY = "minexus_museum_collection",
+          LEVEL_KEY = "minexus_agent_level";
+        const DB = window.NEXUS_DATABASE;
+        let caseData = null,
+          captureData = null,
+          collection = [];
+        try {
+          caseData = JSON.parse(localStorage.getItem(CASE_KEY) || "null");
+        } catch (e) {}
+        try {
+          captureData = JSON.parse(localStorage.getItem(CAPTURE_KEY) || "null");
+        } catch (e) {}
+        try {
+          collection = JSON.parse(localStorage.getItem(COLLECTION_KEY) || "[]");
+        } catch (e) {
+          collection = [];
+        }
+        if (!captureData) {
+          alert(
+            "Nenhum artefato recém-recuperado.\nConclua uma operação de captura primeiro.",
+          );
+          window.location.href = "02-hq.html";
+          return;
+        }
+
+        function suspectById(id) {
+          return (DB.suspects || []).find((s) => s.id === id) || null;
+        }
+        function formatTactic(t) {
+          const m = {
+            silent: "Cerco Silencioso",
+            direct: "Confronto Direto",
+            trap: "Armadilha Preparada",
+          };
+          return m[t] || t;
+        }
+        function formatDate(ts) {
+          try {
+            return new Date(ts).toLocaleDateString("pt-BR", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            });
+          } catch (e) {
+            return "—";
+          }
+        }
+        function audio(ev) {
+          try {
+            if (
+              window.ArchiveAudio &&
+              typeof window.ArchiveAudio[ev] === "function"
+            )
+              window.ArchiveAudio[ev]();
+          } catch (e) {}
+        }
+
+        function levelUp() {
+          let level = parseInt(localStorage.getItem(LEVEL_KEY) || "1");
+          const oldLevel = level;
+          level++;
+          localStorage.setItem(LEVEL_KEY, level.toString());
+          console.log("[MUSEU] Level Up:", oldLevel, "→", level);
+          return { oldLevel, newLevel: level };
+        }
+
+        // 🌟 CURVA DE BÔNUS DO USUÁRIO: 2/4/6/8h
+        function getLevelBonus(l) {
+          var h = 0;
+          if (l >= 5) h = 8;
+          else if (l >= 4) h = 6;
+          else if (l >= 3) h = 4;
+          else if (l >= 2) h = 2;
+          return h;
+        }
+
+        function addToCollection() {
+          const item = {
+            id: captureData.caseId || (caseData ? caseData.id : "unknown"),
+            artifact: captureData.artifact || "Artefato Desconhecido",
+            artifactImage: captureData.artifactImage || null,
+            artifactIcon: captureData.artifactIcon || "🏺",
+            suspect: captureData.suspectName || "Suspeito",
+            suspectId: captureData.suspectId || null,
+            tactic: captureData.tactic || "silent",
+            rating: captureData.rating || "B",
+            goodChoices: captureData.goodChoices || 0,
+            recoveredAt: captureData.capturedAt || Date.now(),
+          };
+          const idx = collection.findIndex((c) => c.id === item.id);
+          if (idx >= 0) collection[idx] = item;
+          else collection.push(item);
+          try {
+            localStorage.setItem(COLLECTION_KEY, JSON.stringify(collection));
+          } catch (e) {}
+        }
+        addToCollection();
+
+        const levelResult = levelUp();
+        const bonus = getLevelBonus(levelResult.newLevel);
+
+        function render() {
+          const container = document.getElementById("museumContent");
+          document.getElementById("statCount").textContent = collection.length;
+          document.getElementById("statCases").textContent = collection.length;
+          document.getElementById("statSRank").textContent = collection.filter(
+            (c) => c.rating === "S",
+          ).length;
+          document.getElementById("statLevel").textContent =
+            levelResult.newLevel;
+          const latest = captureData;
+          const culprit = suspectById(latest.suspectId);
+          const timeLeftTxt =
+            caseData && caseData.timeLimitHours > 0
+              ? `${Math.floor(caseData.timeLimitHours)}h restantes no prazo`
+              : "Concluída no limite do prazo";
+          const detidoMug =
+            culprit && culprit.portrait
+              ? `<img src="${culprit.portrait}" alt="${latest.suspectName}" onerror="this.parentElement.innerHTML='${culprit.initial || "?"}'">`
+              : culprit
+                ? culprit.initial
+                : "?";
+
+          const levelUpHtml = `
+    <div class="level-up-banner">
+      <div class="level-up-title"><i class="fas fa-arrow-up"></i> PROMOÇÃO DE CAMPO</div>
+      <div class="level-up-level">Nível ${levelResult.oldLevel} → Nível ${levelResult.newLevel}</div>
+      <div class="level-up-bonus">
+        <strong>Bônus Desbloqueado:</strong> +${bonus.hours}h de prazo inicial em todos os casos<br>
+        <em style="font-size:11px;color:var(--onv);">Este bônus será aplicado automaticamente ao aceitar seu próximo caso.</em>
+      </div>
+    </div>`;
+
+          const certHtml = `
+    <div class="certificate">
+      <div class="cert-badge">Missão Concluída</div>
+      <div class="cert-heading">Certificado de Recuperação</div>
+      <div class="cert-sub">A Agência reconhece o sucesso da operação ${caseData ? caseData.codename : "NEXUS"}</div>
+      <div class="cert-grid">
+        <div class="cert-item"><div class="cert-label">Artefato</div><div class="cert-value">${latest.artifact}</div></div>
+        <div class="cert-item"><div class="cert-label">Criminoso Detido</div><div class="cert-value">${latest.suspectName}</div></div>
+        <div class="cert-item"><div class="cert-label">Abordagem</div><div class="cert-value">${formatTactic(latest.tactic)}</div></div>
+        <div class="cert-item"><div class="cert-label">Avaliação</div><div class="cert-value rating">${latest.rating || "B"}</div></div>
+        <div class="cert-item"><div class="cert-label">Decisões Coerentes</div><div class="cert-value">${latest.goodChoices || 0} / 2</div></div>
+        <div class="cert-item"><div class="cert-label">Status do Prazo</div><div class="cert-value success"><i class="fas fa-check-circle"></i> ${timeLeftTxt}</div></div>
+      </div>
+      <div class="detido-box">
+        <div class="detido-mug">${detidoMug}</div>
+        <div>
+          <div class="detido-name">${latest.suspectName} — SOB CUSTÓDIA</div>
+          <div class="detido-quote">${culprit ? culprit.quote : ""}</div>
+        </div>
+      </div>
+      ${levelUpHtml}
+    </div>`;
+
+          const galleryHtml = collection
+            .map((item, i) => {
+              const isLatest = item.id === latest.caseId;
+              const s = suspectById(item.suspectId);
+              const display = item.artifactImage
+                ? `<img class="artifact-img" src="${item.artifactImage}" alt="${item.artifact}" onerror="this.outerHTML='<div class=\\'artifact-emoji\\'>${item.artifactIcon || "🏺"}</div>'">`
+                : `<div class="artifact-emoji">${item.artifactIcon || "🏺"}</div>`;
+              const quote = s ? s.quote : '"Mais um mistério resolvido."';
+              return `<div class="vitrine ${isLatest ? "latest" : ""}">
+      <div class="artifact-display"><div class="glow"></div>${display}</div>
+      <div class="artifact-name">${item.artifact}</div>
+      <div class="artifact-origin">Recuperado de ${item.suspect}</div>
+      <div class="artifact-plaque">${formatDate(item.recoveredAt)} • ${formatTactic(item.tactic)} • Rank ${item.rating || "B"}<br><em>${quote}</em></div>
+    </div>`;
+            })
+            .join("");
+
+          container.innerHTML =
+            certHtml +
+            `<div class="gallery-title">Acervo Permanente</div><div class="gallery-grid">${galleryHtml}</div>`;
+        }
+
+        document
+          .getElementById("btnNewMission")
+          .addEventListener("click", () => {
+            if (
+              !confirm(
+                "Iniciar nova missão?\n\nO caso atual será arquivado, mas sua coleção de troféus será preservada.",
+              )
+            )
+              return;
+            try {
+              localStorage.removeItem(CASE_KEY);
+              localStorage.removeItem(WARRANT_KEY);
+              localStorage.removeItem(CAPTURE_KEY);
+            } catch (e) {}
+            window.location.href = "02-hq.html";
+          });
+
+        render();
+        audio("playSuccess");
+        setTimeout(() => audio("playMissionComplete"), 300);
+        console.log(
+          "[MUSEU] v4.0 — Data-Driven + Level Up | Coleção:",
+          collection.length,
+          "| Nível:",
+          levelResult.newLevel,
+        );
+      })();
+    </script>
+  </body>
+</html>

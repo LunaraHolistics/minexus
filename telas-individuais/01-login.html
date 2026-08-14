@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Acesso Seguro — PROJETO M:I</title>
+  <link rel="icon" type="image/png" href="../favicon.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+:root{
+  --surface:#0a0d12;--on:#e5e2e1;--onv:#c1c7cc;
+  --gold:#C5A059;--goldl:#e9c176;--bronze:#CD7F32;--amber:#FFBF00;
+  --petrol:#003344;--ivory:#F5F5DC;--red:#ef4444;--green:#4ade80;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--surface);font-family:'Manrope',sans-serif;color:var(--on);}
+
+/* ============ FUNDO ============ */
+.bg-layer{
+  position:fixed;inset:0;z-index:1;
+  background:
+    radial-gradient(ellipse at 50% 20%, rgba(197,160,89,.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 80%, rgba(0,51,68,.3) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 90%, rgba(0,51,68,.2) 0%, transparent 50%),
+    linear-gradient(180deg, #0a0d12 0%, #0e1218 50%, #0a0d12 100%);
+}
+.scanlines{
+  position:fixed;inset:0;z-index:50;pointer-events:none;opacity:.2;
+  background:repeating-linear-gradient(0deg, rgba(0,0,0,.4) 0, rgba(0,0,0,.4) 1px, transparent 1px, transparent 3px);
+}
+.film-grain{
+  position:fixed;inset:0;z-index:51;pointer-events:none;opacity:.07;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  mix-blend-mode:overlay;
+}
+.vignette{
+  position:fixed;inset:0;z-index:52;pointer-events:none;
+  box-shadow:inset 0 0 200px rgba(0,0,0,.85);
+}
+
+/* ============ BOOT ============ */
+.boot-screen{
+  position:fixed;inset:0;z-index:100;background:#000;
+  padding:40px;font-family:'JetBrains Mono',monospace;font-size:13px;
+  color:#33ff88;line-height:1.8;overflow:hidden;
+}
+.boot-line{opacity:0;animation:boot-in .15s forwards;}
+@keyframes boot-in{to{opacity:1;}}
+.boot-line.ok::before{content:'[OK] ';color:#33ff88;}
+.boot-line.info::before{content:'[..] ';color:#666;}
+.boot-line.warn::before{content:'[!!] ';color:var(--amber);}
+
+/* ============ CONTAINER LOGIN ============ */
+.login-wrap{
+  position:fixed;inset:0;z-index:10;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:20px;opacity:0;transition:opacity .8s;
+}
+.login-wrap.visible{opacity:1;}
+
+/* LOGO */
+.login-logo{text-align:center;margin-bottom:32px;}
+.logo-emblem{
+  font-family:'Libre Caslon Text',serif;font-size:56px;font-weight:700;
+  color:var(--gold);letter-spacing:.05em;
+  text-shadow:0 0 30px rgba(197,160,89,.4);
+  margin-bottom:8px;
+}
+.logo-emblem .sep{color:var(--bronze);margin:0 4px;}
+.logo-title{
+  font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--goldl);
+  letter-spacing:.5em;text-transform:uppercase;margin-bottom:6px;
+}
+.logo-subtitle{
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--onv);
+  letter-spacing:.25em;text-transform:uppercase;opacity:.7;
+}
+
+/* PAINEL */
+.login-panel{
+  width:100%;max-width:420px;
+  background:rgba(10,13,18,.85);backdrop-filter:blur(16px);
+  border:1px solid var(--gold);padding:32px;
+  box-shadow:0 30px 80px rgba(0,0,0,.7), 0 0 0 1px rgba(197,160,89,.2);
+  position:relative;
+}
+.login-panel::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.login-panel.shake{animation:shake .4s;}
+@keyframes shake{
+  0%,100%{transform:translateX(0);}
+  20%{transform:translateX(-8px);}
+  40%{transform:translateX(8px);}
+  60%{transform:translateX(-6px);}
+  80%{transform:translateX(6px);}
+}
+
+.panel-header{
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold);
+  letter-spacing:.3em;text-transform:uppercase;text-align:center;
+  margin-bottom:24px;padding-bottom:16px;
+  border-bottom:1px solid rgba(197,160,89,.3);
+}
+
+.field-group{margin-bottom:18px;}
+.field-label{
+  display:block;font-family:'JetBrains Mono',monospace;font-size:9px;
+  color:var(--bronze);letter-spacing:.2em;text-transform:uppercase;
+  margin-bottom:8px;
+}
+.field-input{
+  width:100%;padding:12px 14px;
+  background:rgba(0,0,0,.4);border:1px solid rgba(197,160,89,.4);
+  color:var(--ivory);font-family:'JetBrains Mono',monospace;font-size:14px;
+  letter-spacing:.05em;transition:all .3s;
+}
+.field-input:focus{
+  outline:none;border-color:var(--gold);
+  box-shadow:0 0 0 1px var(--gold), 0 0 15px rgba(197,160,89,.2);
+}
+.field-input::placeholder{color:rgba(245,245,220,.3);}
+
+.error-msg{
+  min-height:18px;margin-bottom:12px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--red);
+  letter-spacing:.05em;text-align:center;
+}
+
+.btn-login{
+  width:100%;padding:14px;background:var(--gold);
+  border:none;color:var(--surface);font-family:'JetBrains Mono',monospace;
+  font-size:12px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;
+  cursor:pointer;transition:all .3s;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.btn-login:hover:not(:disabled){
+  background:var(--amber);box-shadow:0 0 30px rgba(255,191,0,.5);
+}
+.btn-login:disabled{opacity:.5;cursor:wait;}
+
+.login-status{
+  margin-top:16px;min-height:20px;text-align:center;
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--onv);
+  letter-spacing:.1em;
+}
+.login-status.success{color:var(--green);}
+.login-status.working{color:var(--amber);}
+
+/* FOOTER */
+.login-footer{
+  margin-top:32px;display:flex;gap:24px;flex-wrap:wrap;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(193,199,204,.5);
+  letter-spacing:.15em;text-transform:uppercase;
+}
+.login-footer .sep{color:rgba(197,160,89,.3);}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:40px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--petrol);border:1px solid var(--gold);
+  padding:12px 22px;z-index:200;
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--goldl);
+  letter-spacing:.1em;opacity:0;transition:all .3s;pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+@media (max-width: 480px){
+  .logo-emblem{font-size:42px;}
+  .login-panel{padding:24px 20px;}
+  .login-footer{flex-direction:column;gap:8px;align-items:center;}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-layer"></div>
+<div class="scanlines"></div>
+<div class="film-grain"></div>
+<div class="vignette"></div>
+
+<!-- BOOT -->
+<div class="boot-screen" id="bootScreen"></div>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+
+  <div class="login-logo">
+    <div class="logo-emblem">M<span class="sep">:</span>I</div>
+    <div class="logo-title">Operação Nexus</div>
+    <div class="logo-subtitle">Divisão de Recuperação de Artefatos</div>
+  </div>
+
+  <div class="login-panel" id="loginPanel">
+    <div class="panel-header">
+      <i class="fas fa-shield-alt"></i> Acesso Seguro // Terminal 07
+    </div>
+
+    <div class="field-group">
+      <label class="field-label" for="agentName">Codinome do Agente</label>
+      <input type="text" id="agentName" class="field-input"
+             placeholder="Ex: FALCÃO-9" maxlength="24" autocomplete="off">
+    </div>
+
+    <div class="field-group">
+      <label class="field-label" for="accessCode">Código de Acesso</label>
+      <input type="password" id="accessCode" class="field-input"
+             placeholder="••••••••" maxlength="32">
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <button class="btn-login" id="btnLogin">
+      <i class="fas fa-key"></i> Inicializar Sessão
+    </button>
+
+    <div class="login-status" id="loginStatus"></div>
+  </div>
+
+  <div class="login-footer">
+    <span>Archive OS v3.7.1</span>
+    <span class="sep">|</span>
+    <span id="clock">--:--:--</span>
+    <span class="sep">|</span>
+    <span>Classificação: Top Secret</span>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="../audio-system.js" defer></script>
+<script>
+(function(){
+  'use strict';
+
+  const AGENT_KEY = 'minexus_agent';
+
+  // ============================================
+  // ÁUDIO + TOAST
+  // ============================================
+  function audio(ev){
+    try {
+      if (window.ArchiveAudio && typeof window.ArchiveAudio[ev] === 'function') window.ArchiveAudio[ev]();
+    } catch(e){}
+  }
+
+  let toastTimer;
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // ============================================
+  // BOOT SEQUENCE
+  // ============================================
+  function boot(){
+    const lines = [
+      {t:'ARCHIVE OS v3.7.1 — Inicializando kernel', c:'info'},
+      {t:'Verificando integridade de memória', c:'ok'},
+      {t:'Carregando módulos de criptografia', c:'ok'},
+      {t:'Estabelecendo enlace seguro com HQ', c:'info'},
+      {t:'Handshake TLS concluído', c:'ok'},
+      {t:'Terminal 07 pronto.', c:'warn'}
+    ];
+
+    const bootEl = document.getElementById('bootScreen');
+    let i = 0;
+    function next(){
+      if (i >= lines.length){
+        setTimeout(() => {
+          bootEl.style.transition = 'opacity .6s';
+          bootEl.style.opacity = '0';
+          document.getElementById('loginWrap').classList.add('visible');
+          setTimeout(() => bootEl.style.display = 'none', 600);
+          document.getElementById('agentName').focus();
+        }, 400);
+        return;
+      }
+      const l = lines[i];
+      const div = document.createElement('div');
+      div.className = 'boot-line ' + l.c;
+      div.textContent = l.t;
+      bootEl.appendChild(div);
+      i++;
+      setTimeout(next, 180 + Math.random() * 200);
+    }
+    next();
+  }
+
+  // ============================================
+  // RELÓGIO
+  // ============================================
+  function updateClock(){
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2,'0');
+    const mm = String(now.getMinutes()).padStart(2,'0');
+    const ss = String(now.getSeconds()).padStart(2,'0');
+    document.getElementById('clock').textContent = `${hh}:${mm}:${ss} LOCAL`;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // ============================================
+  // AUTO-FILL (agente anterior)
+  // ============================================
+  function loadPreviousAgent(){
+    try {
+      const saved = JSON.parse(localStorage.getItem(AGENT_KEY) || 'null');
+      if (saved && saved.codename){
+        document.getElementById('agentName').value = saved.codename;
+      }
+    } catch(e){}
+  }
+
+  // ============================================
+  // LOGIN
+  // ============================================
+  function setStatus(msg, cls){
+    const el = document.getElementById('loginStatus');
+    el.textContent = msg;
+    el.className = 'login-status' + (cls ? ' ' + cls : '');
+  }
+
+  function setError(msg){
+    document.getElementById('errorMsg').textContent = msg;
+    const panel = document.getElementById('loginPanel');
+    panel.classList.remove('shake');
+    void panel.offsetWidth;
+    panel.classList.add('shake');
+    audio('playError');
+  }
+
+  function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+  async function doLogin(){
+    const name = document.getElementById('agentName').value.trim();
+    const code = document.getElementById('accessCode').value.trim();
+    const btn = document.getElementById('btnLogin');
+
+    // Validação
+    if (name.length < 3){
+      setError('Codinome deve ter ao menos 3 caracteres.');
+      return;
+    }
+    if (code.length < 4){
+      setError('Código de acesso deve ter ao menos 4 caracteres.');
+      return;
+    }
+
+    // Inicia sequência de autenticação
+    document.getElementById('errorMsg').textContent = '';
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Autenticando';
+
+    setStatus('ESTABELECENDO CONEXÃO SEGURA...', 'working');
+    audio('playClick');
+    await sleep(700);
+
+    setStatus('VALIDANDO CREDENCIAIS...', 'working');
+    await sleep(600);
+
+    setStatus('SINCRONIZANDO PERFIL DO AGENTE...', 'working');
+    await sleep(500);
+
+    // Salva agente
+    const agentData = {
+      codename: name.toUpperCase(),
+      loggedInAt: Date.now(),
+      clearance: 'NÍVEL 5'
+    };
+    try {
+      localStorage.setItem(AGENT_KEY, JSON.stringify(agentData));
+    } catch(e){
+      console.warn('[LOGIN] Falha ao salvar agente:', e);
+    }
+
+    setStatus('ACESSO CONCEDIDO. BEM-VINDO, AGENTE ' + agentData.codename, 'success');
+    audio('playSuccess');
+    await sleep(900);
+
+    // Redireciona
+    window.location.href = '02-hq.html';
+  }
+
+  // ============================================
+  // BINDING
+  // ============================================
+  document.getElementById('btnLogin').addEventListener('click', doLogin);
+
+  document.getElementById('accessCode').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') doLogin();
+  });
+  document.getElementById('agentName').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('accessCode').focus();
+  });
+
+  // ============================================
+  // INIT
+  // ============================================
+  loadPreviousAgent();
+  boot();
+
+  console.log('[LOGIN] Terminal 07 inicializado');
+})();
+</script>
+
+</body>
+</html>
