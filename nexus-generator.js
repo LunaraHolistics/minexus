@@ -1,6 +1,7 @@
 /**
- * NEXUS GENERATOR v3.0 — Roteirista procedural
+ * NEXUS GENERATOR v4.0 — Roteirista procedural
  * - Revelação progressiva (5 cidades: roubo → +2 → +2)
+ * - DENSIDADE ALTA: múltiplos locais por cidade dão o salto geográfico
  * - Exclui vilões PRESOS do pool de culpados
  * - Suporta caso REABERTO (culpritId fixo = foragido)
  */
@@ -84,21 +85,37 @@ function generateCase(opts){
   var p4=p3.filter(function(c){return c!==capture;});
   var decoy2=pick(rnd,p4);
 
-  // Funil de identidade simulado
+  // Funil de identidade simulado — com mais pistas por estágio
   var ALL={};suspects.forEach(function(s){s.traits.forEach(function(t){ALL[t]=1;});});ALL=Object.keys(ALL);
   var rem=suspects.slice(),usedPos={},usedNeg={},stages=[[],[],[]];
   function addPos(st){var best=null,bl=rem.length;culprit.traits.forEach(function(t){if(usedPos[t])return;var len=rem.filter(function(s){return has(s,t);}).length;if(len>=1&&len<bl){best=t;bl=len;}});if(best){usedPos[best]=1;rem=rem.filter(function(s){return has(s,best);});stages[st].push({type:"pos",trait:best,text:posText(best)});return true;}return false;}
   function addNeg(st){var best=null,bl=rem.length;ALL.forEach(function(t){if(has(culprit,t)||usedNeg[t])return;var len=rem.filter(function(s){return !has(s,t);}).length;if(len>=1&&len<bl){best=t;bl=len;}});if(best){usedNeg[best]=1;rem=rem.filter(function(s){return !has(s,best);});stages[st].push({type:"neg",trait:best,text:negText(best)});return true;}return false;}
-  addPos(0);addPos(0);addNeg(0);addPos(1);addNeg(1);
+  addPos(0);addPos(0);addNeg(0);addNeg(0);   // 4 pistas no roubo
+  addPos(1);addNeg(1);addNeg(1);             // 3 pistas no trânsito
   var g=0;while(rem.length>1&&g<8){if(!addPos(2)){if(!addNeg(2))break;}g++;}
 
-  var R1=[transit,decoy1],R2=[capture,decoy2];
+  var R1=[transit,decoy1], R2=[capture,decoy2];
+  var geoMain1={text:"Soube que ele "+geoText(transit,rnd),reveal:R1};
+  var geoDecoy1={text:"Cuidado: um boato aponta para "+decoy1+". Pode ser despiste.",reveal:R1};
+  var geoMain2={text:"Soube que ele "+geoText(capture,rnd),reveal:R2};
   var locations={};
-  locations[theft]=buildCity(theft,stages[0],[{text:"Soube que ele "+geoText(transit,rnd),reveal:R1},{text:"Cuidado: um boato aponta para "+decoy1+". Pode ser despiste.",reveal:R1}],rnd);
-  locations[transit]=buildCity(transit,stages[1],[{text:"Soube que ele "+geoText(capture,rnd),reveal:R2}],rnd);
+
+  // 🎯 ROUBO: 2 locais dão o salto principal + 1 dá a isca
+  locations[theft]=buildCity(theft,stages[0],[geoMain1,geoMain1,geoDecoy1],rnd);
+  // 🎯 TRÂNSITO: 2 locais revelam a CAPTURA (não dá pra travar)
+  locations[transit]=buildCity(transit,stages[1],[geoMain2,geoMain2],rnd);
+  // 🎯 CAPTURA: confirmação final
   locations[capture]=buildCity(capture,stages[2],[{text:"Ele não pretende sair de "+capture+". 'A caça termina aqui'.",reveal:[]}],rnd);
-  locations[decoy1]=buildCity(decoy1,[],[{text:"ERA UMA ISCA! O contato riu: 'o verdadeiro foi para "+transit+".'",reveal:[transit]}],rnd);
-  locations[decoy2]=buildCity(decoy2,[],[{text:"ERA UMA ISCA! O rastro verdadeiro leva a "+capture+".",reveal:[capture]}],rnd);
+  // 🎯 ISCA 1: 2 locais confessam que é despiste e apontam o trânsito
+  locations[decoy1]=buildCity(decoy1,[],[
+    {text:"ERA UMA ISCA! O contato riu: 'o verdadeiro foi para "+transit+".'",reveal:[transit]},
+    {text:"ERA UMA ISCA! Pergunte em "+transit+".",reveal:[transit]}
+  ],rnd);
+  // 🎯 ISCA 2: 2 locais apontam a captura
+  locations[decoy2]=buildCity(decoy2,[],[
+    {text:"ERA UMA ISCA! O rastro verdadeiro leva a "+capture+".",reveal:[capture]},
+    {text:"ERA UMA ISCA! Ele foi visto em "+capture+".",reveal:[capture]}
+  ],rnd);
 
   function cityObj(n,rev,cur,vis){var c=all[n]||{};return {name:n,country:c.country||"",photo:c.photo||null,visited:!!vis,current:!!cur,revealed:!!rev};}
   var cities=[cityObj(theft,true,true,true),cityObj(transit,false,false,false),cityObj(decoy1,false,false,false),cityObj(capture,false,false,false),cityObj(decoy2,false,false,false)];
@@ -118,5 +135,5 @@ function generateCase(opts){
   };
 }
 window.NexusGenerator={generateCase:generateCase};
-console.log("[GERADOR] v3.0 — prisão/reabertura + revelação progressiva");
+console.log("[GERADOR] v4.0 — densidade alta + prisão/reabertura");
 })();
