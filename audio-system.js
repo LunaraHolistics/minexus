@@ -387,94 +387,63 @@
   }
 
   /* ---------- Ambientes ---------- */
-  var ambient = null;
-  function stopAmbient() {
-    if (ambient) {
-      try {
-        ambient.src.stop();
-      } catch (e) {}
-      if (ambient.extra)
-        try {
-          ambient.extra.stop();
-        } catch (e) {}
-      if (ambient.lfo)
-        try {
-          ambient.lfo.stop();
-        } catch (e) {}
-      ambient = null;
-    }
+var ambient=null;
+function stopAmbient(){
+  if(ambient){
+    (ambient.stops||[]).forEach(function(n){try{n.stop();}catch(e){}});
+    try{if(ambient.src)ambient.src.stop();}catch(e){}
+    ambient=null;
   }
-  function startRain() {
-    stopAmbient();
-    var c = ctx();
-    if (!c) return;
-    var s = c.createBufferSource();
-    s.buffer = noiseBuffer(2);
-    s.loop = true;
-    var hp = c.createBiquadFilter();
-    hp.type = "highpass";
-    hp.frequency.value = 500;
-    var lp = c.createBiquadFilter();
-    lp.type = "lowpass";
-    lp.frequency.value = 6000;
-    var g = c.createGain();
-    g.gain.value = 0.04;
-    s.connect(hp);
-    hp.connect(lp);
-    lp.connect(g);
-    g.connect(masterGain);
-    s.start();
-    ambient = { src: s, g: g };
-  }
-  function startWind() {
-    stopAmbient();
-    var c = ctx();
-    if (!c) return;
-    var s = c.createBufferSource();
-    s.buffer = noiseBuffer(3);
-    s.loop = true;
-    var bp = c.createBiquadFilter();
-    bp.type = "bandpass";
-    bp.frequency.value = 400;
-    bp.Q.value = 0.8;
-    var lfo = c.createOscillator();
-    lfo.frequency.value = 0.1;
-    var lg = c.createGain();
-    lg.gain.value = 200;
-    lfo.connect(lg);
-    lg.connect(bp.frequency);
-    var g = c.createGain();
-    g.gain.value = 0.06;
-    s.connect(bp);
-    bp.connect(g);
-    g.connect(masterGain);
-    s.start();
-    lfo.start();
-    ambient = { src: s, g: g, lfo: lfo };
-  }
-  function startDrone() {
-    stopAmbient();
-    var c = ctx();
-    if (!c) return;
-    var o1 = c.createOscillator(),
-      o2 = c.createOscillator();
-    o1.type = "sawtooth";
-    o2.type = "sawtooth";
-    o1.frequency.value = 55;
-    o2.frequency.value = 55.7;
-    var lp = c.createBiquadFilter();
-    lp.type = "lowpass";
-    lp.frequency.value = 300;
-    var g = c.createGain();
-    g.gain.value = 0.03;
-    o1.connect(lp);
-    o2.connect(lp);
-    lp.connect(g);
-    g.connect(masterGain);
-    o1.start();
-    o2.start();
-    ambient = { src: o1, g: g, extra: o2 };
-  }
+}
+/* CHUVA: corpo grave + "pingos" agudos bem baixos + rajadas lentas (não é chiado) */
+function startRain(){
+  stopAmbient();var c=ctx();if(!c)return;
+  var s=c.createBufferSource();s.buffer=noiseBuffer(2);s.loop=true;
+  var lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=900;lp.Q.value=0.5;
+  var g=c.createGain();g.gain.value=0.028;
+  s.connect(lp);lp.connect(g);g.connect(masterGain);
+  var s2=c.createBufferSource();s2.buffer=noiseBuffer(2);s2.loop=true;
+  var bp=c.createBiquadFilter();bp.type='bandpass';bp.frequency.value=3200;bp.Q.value=0.8;
+  var g2=c.createGain();g2.gain.value=0.006;
+  s2.connect(bp);bp.connect(g2);g2.connect(masterGain);
+  var lfo=c.createOscillator();lfo.frequency.value=0.08;
+  var lg=c.createGain();lg.gain.value=0.008;
+  lfo.connect(lg);lg.connect(g.gain);
+  s.start();s2.start();lfo.start();
+  ambient={stops:[s,s2,lfo]};
+}
+/* VENTO: bandpass estreito e grave varrendo devagar (assovio de vento, não chiado) */
+function startWind(){
+  stopAmbient();var c=ctx();if(!c)return;
+  var s=c.createBufferSource();s.buffer=noiseBuffer(3);s.loop=true;
+  var bp=c.createBiquadFilter();bp.type='bandpass';bp.frequency.value=250;bp.Q.value=0.9;
+  var g=c.createGain();g.gain.value=0.05;
+  s.connect(bp);bp.connect(g);g.connect(masterGain);
+  var lfo=c.createOscillator();lfo.frequency.value=0.07;
+  var lg=c.createGain();lg.gain.value=120;
+  lfo.connect(lg);lg.connect(bp.frequency);
+  var lfo2=c.createOscillator();lfo2.frequency.value=0.05;
+  var lg2=c.createGain();lg2.gain.value=0.02;
+  lfo2.connect(lg2);lg2.connect(g.gain);
+  s.start();lfo.start();lfo2.start();
+  ambient={stops:[s,lfo,lfo2]};
+}
+/* DRONE NOIR: acorde grave senoidal + tremolo lento (trilha tensa, não ruído) */
+function startDrone(){
+  stopAmbient();var c=ctx();if(!c)return;
+  var g=c.createGain();g.gain.value=0;g.gain.linearRampToValueAtTime(0.03,c.currentTime+1.5);
+  var o1=c.createOscillator();o1.type='sine';o1.frequency.value=55;o1.connect(g);
+  var o2=c.createOscillator();o2.type='sine';o2.frequency.value=82.5;
+  var g2=c.createGain();g2.gain.value=0.5;o2.connect(g2);g2.connect(g);
+  var o3=c.createOscillator();o3.type='triangle';o3.frequency.value=110;
+  var g3=c.createGain();g3.gain.value=0.35;o3.connect(g3);g3.connect(g);
+  g.connect(masterGain);
+  var lfo=c.createOscillator();lfo.frequency.value=0.1;
+  var lg=c.createGain();lg.gain.value=0.008;
+  lfo.connect(lg);lg.connect(g.gain);
+  o1.start();o2.start();o3.start();lfo.start();
+  ambient={stops:[o1,o2,o3,lfo]};
+}
 
   /* ---------- Ticking ---------- */
   var tickTimer = null,

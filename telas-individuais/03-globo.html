@@ -8,7 +8,6 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<!-- ✅ REMOVIDO o OrbitControls do jsdelivr (bloqueado pelo Edge) -->
 <script src="../audio-system.js" defer></script>
 <style>
 :root{--surface:#0a0d12;--on:#e5e2e1;--onv:#c1c7cc;--gold:#C5A059;--goldl:#e9c176;--bronze:#CD7F32;--amber:#FFBF00;--petrol:#003344;--red:#ef4444;--green:#4ade80;--blue:#3b82f6;}
@@ -251,6 +250,35 @@ let scene,camera,renderer,controls,globe,globeGroup,markers=[],hoveredMarker=nul
 const raycaster=new THREE.Raycaster();const mouse=new THREE.Vector2();
 let mouseDownPos={x:0,y:0},isDragging=false;
 
+/* ✅ NOVAS: funções de rota e avião para animação de voo */
+function latLonToVec(lat,lon,r){
+  const phi=(90-lat)*Math.PI/180, th=(lon+180)*Math.PI/180;
+  return new THREE.Vector3(-(r*Math.sin(phi)*Math.cos(th)), r*Math.cos(phi), r*Math.sin(phi)*Math.sin(th));
+}
+function calculateRoute(from,to,isCar){
+  const pts=[];const seg=60;
+  const a=latLonToVec(from.lat,from.lon,1), b=latLonToVec(to.lat,to.lon,1);
+  for(let i=0;i<=seg;i++){
+    const t=i/seg;
+    const p=a.clone().lerp(b,t).normalize();
+    const arc=isCar?1.03:(1.05+Math.sin(Math.PI*t)*0.28);
+    pts.push(p.multiplyScalar(arc));
+  }
+  return pts;
+}
+function createRouteLine(pts,isCar){
+  const geo=new THREE.BufferGeometry().setFromPoints(pts);
+  const mat=new THREE.LineBasicMaterial({color:isCar?0x4ade80:0xffbf00,transparent:true,opacity:0.7});
+  return new THREE.Line(geo,mat);
+}
+function createPlaneIcon(isCar){
+  const g=new THREE.Group();
+  const core=new THREE.Mesh(new THREE.SphereGeometry(0.02,12,12),new THREE.MeshBasicMaterial({color:isCar?0x4ade80:0xffbf00}));
+  const halo=new THREE.Mesh(new THREE.SphereGeometry(0.045,12,12),new THREE.MeshBasicMaterial({color:isCar?0x4ade80:0xffbf00,transparent:true,opacity:0.35}));
+  g.add(core);g.add(halo);
+  return g;
+}
+
 function init(){
   scene=new THREE.Scene();
   camera=new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,1000);
@@ -402,6 +430,8 @@ function openTravelModal(dest){
   document.getElementById('travelModal').classList.add('active');
 }
 function closeTravel(){document.getElementById('travelModal').classList.remove('active');}
+
+/* ✅ startTravel evoluída com animação de voo completa */
 function startTravel(from,to,opt){
   isTraveling=true;controls.autoRotate=false;
   const fc=cityCoords[from.name],tc=cityCoords[to.name];if(!fc||!tc){isTraveling=false;return;}
@@ -409,12 +439,24 @@ function startTravel(from,to,opt){
   document.getElementById('travelOverlayDesc').textContent=from.name+' → '+to.name;
   document.getElementById('travelOverlay').classList.add('active');
   audio('playWhoosh');
-  const dur=Math.max(opt.time*1000,2000);const t0=Date.now();
+  const isCar=opt.type==='car';
+  const route=calculateRoute(fc,tc,isCar);
+  const line=createRouteLine(route,isCar);globeGroup.add(line);
+  const plane=createPlaneIcon(isCar);globeGroup.add(plane);
+  plane.position.copy(route[0]);
+  const dur=Math.max(opt.time*1000,2500);const t0=Date.now();
   (function anim(){
     const p=Math.min((Date.now()-t0)/dur,1);
+    const idx=Math.min(Math.floor(p*(route.length-1)),route.length-2);
+    const local=p*(route.length-1)-idx;
+    plane.position.lerpVectors(route[idx],route[idx+1],local);
+    const camTarget=plane.position.clone().normalize().multiplyScalar(2.6);
+    camera.position.lerp(camTarget,0.06);
+    camera.lookAt(0,0,0);
     document.getElementById('travelTimer').textContent=(Math.max(0,opt.time*(1-p))).toFixed(1)+'h restantes';
     document.getElementById('travelProgressFill').style.width=(p*100)+'%';
-    if(p<1)requestAnimationFrame(anim);else finishTravel(from,to,opt,fc,tc);
+    if(p<1){requestAnimationFrame(anim);}
+    else{globeGroup.remove(line);globeGroup.remove(plane);finishTravel(from,to,opt,fc,tc);}
   })();
 }
 function finishTravel(from,to,opt,fc,tc){
@@ -461,10 +503,9 @@ document.getElementById('cancelBtn').addEventListener('click',function(){audio('
 document.getElementById('btnCancelTravel').addEventListener('click',closeTravel);
 document.getElementById('travelModal').addEventListener('click',function(e){if(e.target.id==='travelModal')closeTravel();});
 
-/* ✅ Inicialização à prova de falha: o loading SEMPRE some */
 try{init();}catch(err){console.error('[GLOBO] erro:',err);}
 setTimeout(function(){document.getElementById('loading').classList.add('hidden');},2000);
-console.log('[GLOBO] v5.2 — órbita própria (sem CDN bloqueado)');
+console.log('[GLOBO] v6.0 — animação de voo + órbita própria');
 })();
 </script>
 </body>
