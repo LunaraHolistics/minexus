@@ -413,7 +413,7 @@ function closeModal(saveClue){
   if(!currentLocation)return;const loc=currentLocation;
   if(saveClue&&loc.hasClue){
     if(!caseData.clues)caseData.clues={geo:[],id:[],neg:[]};
-    if(loc.geoClue&&!caseData.clues.geo.some(function(c){return c.text===loc.geoClue;}))caseData.clues.geo.push({text:loc.geoClue,source:loc.name});
+        if(loc.geoClue&&!caseData.clues.geo.some(function(c){return c.text===loc.geoClue;}))caseData.clues.geo.push({text:loc.geoClue,source:loc.name,pointsTo:loc.pointsTo||loc.reveals||[]});
     if(loc.reveals&&loc.reveals.length){loc.reveals.forEach(function(cn){var cc=(caseData.cities||[]).filter(function(x){return x.name===cn;})[0];if(cc&&cc.revealed!==true){cc.revealed=true;setTimeout(function(){showToast('🗺️ Novo destino no globo: '+cn,'success');},400);}});}
     if(loc.clueType==='positive'&&loc.idClue&&!caseData.clues.id.some(function(c){return c.text===loc.idClue;}))caseData.clues.id.push({text:loc.idClue,source:loc.name,idTrait:loc.idTrait});
     if(loc.clueType==='negative'&&loc.negClue&&!caseData.clues.neg.some(function(c){return c.text===loc.negClue;}))caseData.clues.neg.push({text:loc.negClue,trait:loc.negTrait,source:loc.name});

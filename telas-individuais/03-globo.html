@@ -1,512 +1,1871 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Mapa Global — PROJETO M:I</title>
-<link rel="icon" type="image/png" href="../favicon.png">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="../audio-system.js" defer></script>
-<style>
-:root{--surface:#0a0d12;--on:#e5e2e1;--onv:#c1c7cc;--gold:#C5A059;--goldl:#e9c176;--bronze:#CD7F32;--amber:#FFBF00;--petrol:#003344;--red:#ef4444;--green:#4ade80;--blue:#3b82f6;}
-*{margin:0;padding:0;box-sizing:border-box;}
-html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Manrope',sans-serif;color:var(--on);}
-#globe-container{position:fixed;inset:0;z-index:1;cursor:grab;}
-#globe-container:active{cursor:grabbing;}
-.scanlines{position:fixed;inset:0;z-index:5;pointer-events:none;opacity:.15;background:repeating-linear-gradient(0deg,rgba(0,0,0,.3) 0,rgba(0,0,0,.3) 1px,transparent 1px,transparent 3px);}
-.film-grain{position:fixed;inset:0;z-index:6;pointer-events:none;opacity:.06;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");mix-blend-mode:overlay;}
-.vignette{position:fixed;inset:0;z-index:7;pointer-events:none;box-shadow:inset 0 0 200px rgba(0,0,0,.9);}
-#ui-layer{position:fixed;inset:0;z-index:10;pointer-events:none;}
-.panel{position:absolute;background:rgba(10,13,18,.85);backdrop-filter:blur(16px);border:.5px solid rgba(197,160,89,.3);padding:20px;pointer-events:auto;border-radius:4px;box-shadow:0 20px 50px rgba(0,0,0,.6);}
-#top-bar{position:absolute;top:16px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:20px;padding:10px 24px;background:rgba(10,13,18,.85);backdrop-filter:blur(16px);border:.5px solid var(--gold);border-radius:4px;pointer-events:auto;font-family:'JetBrains Mono',monospace;}
-#top-bar .logo{font-family:'Libre Caslon Text',serif;font-size:18px;font-weight:700;color:var(--goldl);}
-#top-bar .sep{color:var(--bronze);}
-#top-bar .title{font-size:10px;color:var(--goldl);letter-spacing:.2em;text-transform:uppercase;}
-#top-bar .case-name{font-size:11px;color:var(--amber);letter-spacing:.15em;}
-#top-bar .back-btn{padding:6px 14px;background:transparent;border:1px solid var(--gold);color:var(--goldl);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;text-decoration:none;}
-#top-bar .back-btn:hover{background:var(--gold);color:var(--surface);}
-#route-panel{top:80px;left:20px;width:320px;max-height:calc(100vh - 120px);overflow-y:auto;}
-.panel-title{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:.25em;text-transform:uppercase;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;}
-.panel-title .count{color:var(--amber);font-size:10px;}
-.city-card{background:rgba(197,160,89,.05);border:1px solid rgba(197,160,89,.2);padding:14px 16px;margin-bottom:10px;border-radius:4px;cursor:pointer;transition:all .3s;position:relative;}
-.city-card:hover{background:rgba(197,160,89,.1);border-color:var(--gold);transform:translateX(4px);}
-.city-card.active{border-color:var(--amber);background:rgba(255,191,0,.08);}
-.city-card.visited{opacity:.5;}
-.city-card.visited::after{content:'✓';position:absolute;top:12px;right:14px;color:var(--green);font-size:16px;font-weight:700;}
-.city-card.target{border-color:var(--red);background:rgba(239,68,68,.08);animation:pulse-target 2s infinite;}
-@keyframes pulse-target{0%,100%{box-shadow:0 0 20px rgba(239,68,68,.3);}50%{box-shadow:0 0 35px rgba(239,68,68,.6);}}
-.city-name{font-family:'Libre Caslon Text',serif;font-size:16px;font-weight:700;color:var(--goldl);margin-bottom:2px;}
-.city-country{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--onv);letter-spacing:.1em;text-transform:uppercase;}
-.city-time{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--onv);margin-top:4px;opacity:.7;}
-.city-status{display:inline-block;padding:2px 8px;margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;border-radius:2px;}
-.city-status.current{background:rgba(255,191,0,.2);color:var(--amber);}
-.city-status.visited{background:rgba(74,222,128,.15);color:var(--green);}
-.city-status.next{background:rgba(59,130,246,.15);color:var(--blue);}
-.city-status.target{background:rgba(239,68,68,.2);color:var(--red);}
-#intel-panel{top:80px;right:20px;width:300px;max-height:calc(100vh - 120px);overflow-y:auto;}
-.info-section{margin-bottom:16px;}
-.info-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--onv);text-transform:uppercase;letter-spacing:.15em;margin-bottom:6px;}
-.info-value{font-family:'Manrope',sans-serif;font-size:14px;color:var(--on);}
-.info-value.timer{color:var(--amber);font-family:'JetBrains Mono',monospace;font-weight:700;}
-.info-value.timer.critical{color:var(--red);}
-.info-value.target{color:var(--red);font-weight:700;}
-.info-value.local-time{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--goldl);font-size:16px;}
-#city-details{display:none;margin-top:8px;padding-top:16px;border-top:1px solid rgba(197,160,89,.2);}
-#city-details.visible{display:block;}
-.city-heading{font-family:'Libre Caslon Text',serif;font-size:22px;font-weight:700;color:var(--goldl);margin-bottom:4px;}
-.city-sub{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--bronze);letter-spacing:.15em;text-transform:uppercase;margin-bottom:16px;}
-.intel-btn{width:100%;margin-top:16px;padding:14px;background:var(--gold);color:var(--surface);border:none;border-radius:3px;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.15em;display:flex;align-items:center;justify-content:center;gap:10px;}
-.intel-btn:hover:not(:disabled){background:var(--amber);}
-.intel-btn:disabled{opacity:.5;cursor:not-allowed;}
-.intel-btn.secondary{background:transparent;color:var(--goldl);border:1px solid var(--gold);margin-top:8px;}
-.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .3s;}
-.modal-backdrop.active{opacity:1;pointer-events:auto;}
-.travel-modal{max-width:560px;width:100%;background:#0a0d12;border:1px solid var(--gold);padding:32px;max-height:85vh;overflow-y:auto;}
-.travel-header{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:.3em;text-transform:uppercase;text-align:center;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid rgba(197,160,89,.3);}
-.travel-title{font-family:'Libre Caslon Text',serif;font-size:22px;font-weight:700;color:var(--goldl);text-align:center;margin-bottom:24px;}
-.transport-option{background:rgba(0,51,68,.3);border:1px solid rgba(197,160,89,.3);padding:20px;margin-bottom:12px;cursor:pointer;transition:all .3s;position:relative;}
-.transport-option:hover{border-color:var(--gold);transform:translateX(4px);}
-.transport-option.recommended::after{content:'RECOMENDADO';position:absolute;top:12px;right:12px;background:var(--green);color:var(--surface);font-size:8px;font-weight:700;letter-spacing:.2em;padding:4px 10px;font-family:'JetBrains Mono',monospace;}
-.transport-icon{width:48px;height:48px;background:rgba(197,160,89,.1);border:1px solid var(--gold);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--gold);margin-bottom:12px;}
-.transport-name{font-family:'Libre Caslon Text',serif;font-size:18px;font-weight:700;color:var(--goldl);margin-bottom:4px;}
-.transport-desc{font-family:'Manrope',sans-serif;font-size:12px;color:var(--onv);margin-bottom:12px;}
-.transport-stats{display:flex;gap:16px;padding-top:12px;border-top:1px solid rgba(197,160,89,.2);}
-.stat{font-family:'JetBrains Mono',monospace;font-size:10px;}
-.stat .label{color:var(--bronze);letter-spacing:.1em;text-transform:uppercase;}
-.stat .value{color:var(--amber);font-weight:700;margin-left:6px;}
-.travel-actions{display:flex;gap:12px;margin-top:24px;justify-content:flex-end;}
-.btn-modal{padding:12px 24px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;background:transparent;color:var(--onv);border:1px solid rgba(197,160,89,.4);}
-.btn-modal:hover{background:rgba(197,160,89,.1);color:var(--on);}
-.travel-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.35);display:flex;align-items:flex-end;justify-content:flex-start;padding:40px;pointer-events:none;opacity:0;transition:opacity .4s;}
-.travel-overlay.active{opacity:1;}
-.travel-panel{pointer-events:auto;background:rgba(10,13,18,.92);backdrop-filter:blur(12px);border:1px solid var(--gold);border-radius:4px;padding:24px 32px;max-width:400px;width:100%;}
-.travel-overlay h2{font-family:'Libre Caslon Text',serif;font-size:22px;color:var(--goldl);margin-bottom:4px;}
-.travel-overlay p{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--onv);margin-bottom:16px;}
-.travel-timer{font-family:'JetBrains Mono',monospace;font-size:40px;font-weight:700;color:var(--amber);margin-bottom:12px;}
-.travel-progress{height:4px;background:rgba(197,160,89,.15);border-radius:2px;overflow:hidden;}
-.travel-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--amber));transition:width .3s;}
-.travel-hint{margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--bronze);letter-spacing:.2em;text-transform:uppercase;}
-.sleep-overlay{position:fixed;inset:0;z-index:210;background:rgba(0,0,0,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;opacity:0;pointer-events:none;transition:opacity .6s;}
-.sleep-overlay.active{opacity:1;pointer-events:auto;}
-.sleep-icon{font-size:80px;}
-.sleep-overlay h2{font-family:'Libre Caslon Text',serif;font-size:28px;color:#93c5fd;}
-.sleep-timer{font-family:'JetBrains Mono',monospace;font-size:40px;font-weight:700;color:#93c5fd;}
-.sleep-reason{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--onv);letter-spacing:.2em;text-transform:uppercase;padding:6px 14px;border:1px solid rgba(147,197,253,.3);}
-#loading{position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;z-index:300;flex-direction:column;gap:20px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold);letter-spacing:.25em;text-transform:uppercase;}
-.spinner{width:50px;height:50px;border:2px solid rgba(197,160,89,.2);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.hidden{display:none !important;}
-.toast{position:fixed;bottom:40px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--petrol);border:1px solid var(--gold);padding:12px 22px;z-index:400;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--goldl);opacity:0;transition:all .3s;pointer-events:none;}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-.toast.error{border-color:var(--red);color:#fecaca;}
-.toast.success{border-color:var(--green);color:#bbf7d0;}
-@media (max-width:820px){#route-panel{width:260px;left:12px;}#intel-panel{width:260px;right:12px;}}
-</style>
-</head>
-<body>
-<div id="loading"><div class="spinner"></div><div>Sincronizando Satélite</div></div>
-<div id="globe-container"></div>
-<div class="scanlines"></div><div class="film-grain"></div><div class="vignette"></div>
-<div id="ui-layer">
-  <div id="top-bar">
-    <div class="logo">M<span class="sep">:</span>I</div>
-    <div class="title">MAPA GLOBAL</div>
-    <div class="case-name" id="caseName">—</div>
-    <a href="02-hq.html" class="back-btn"><i class="fas fa-arrow-left"></i> HQ</a>
-  </div>
-  <div id="route-panel" class="panel">
-    <div class="panel-title"><span>ROTA DO CASO</span><span class="count" id="route-count">0</span></div>
-    <div id="route-list"></div>
-  </div>
-  <div id="intel-panel" class="panel">
-    <div class="info-section"><div class="info-label">Status da Operação</div><div class="info-value" id="op-status">Aguardando seleção</div></div>
-    <div class="info-section"><div class="info-label">Tempo Restante</div><div class="info-value timer" id="op-timer">—</div></div>
-    <div class="info-section"><div class="info-label">Horário Local</div><div class="info-value local-time" id="op-local-time">—</div></div>
-    <div class="info-section"><div class="info-label">Artefato em Jogo</div><div class="info-value" id="op-artifact">—</div></div>
-    <div class="info-section" id="targetSection" style="display:none;"><div class="info-label">Alvo Rastreado</div><div class="info-value target" id="op-target">—</div></div>
-    <div id="city-details">
-      <div class="city-heading" id="cityHeading">—</div>
-      <div class="city-sub" id="citySub">—</div>
-      <div class="info-section"><div class="info-label">País</div><div class="info-value" id="cityCountry">—</div></div>
-      <div class="info-section"><div class="info-label">Fuso Horário</div><div class="info-value" id="cityTimezone">—</div></div>
-      <div class="info-section"><div class="info-label">Status</div><div class="info-value" id="cityStatus">—</div></div>
-      <button class="intel-btn" id="actionBtn"><i class="fas fa-plane-departure"></i> Investigar Cidade</button>
-      <button class="intel-btn secondary" id="cancelBtn">Cancelar Seleção</button>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>Mapa Global — PROJETO M:I</title>
+    <link rel="icon" type="image/png" href="../favicon.png" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Manrope:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="../audio-system.js" defer></script>
+    <style>
+      :root {
+        --surface: #0a0d12;
+        --on: #e5e2e1;
+        --onv: #c1c7cc;
+        --gold: #c5a059;
+        --goldl: #e9c176;
+        --bronze: #cd7f32;
+        --amber: #ffbf00;
+        --petrol: #003344;
+        --red: #ef4444;
+        --green: #4ade80;
+        --blue: #3b82f6;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #000;
+        font-family: "Manrope", sans-serif;
+        color: var(--on);
+      }
+      #globe-container {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        cursor: grab;
+      }
+      #globe-container:active {
+        cursor: grabbing;
+      }
+      .scanlines {
+        position: fixed;
+        inset: 0;
+        z-index: 5;
+        pointer-events: none;
+        opacity: 0.15;
+        background: repeating-linear-gradient(
+          0deg,
+          rgba(0, 0, 0, 0.3) 0,
+          rgba(0, 0, 0, 0.3) 1px,
+          transparent 1px,
+          transparent 3px
+        );
+      }
+      .film-grain {
+        position: fixed;
+        inset: 0;
+        z-index: 6;
+        pointer-events: none;
+        opacity: 0.06;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+        mix-blend-mode: overlay;
+      }
+      .vignette {
+        position: fixed;
+        inset: 0;
+        z-index: 7;
+        pointer-events: none;
+        box-shadow: inset 0 0 200px rgba(0, 0, 0, 0.9);
+      }
+      #ui-layer {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        pointer-events: none;
+      }
+      .panel {
+        position: absolute;
+        background: rgba(10, 13, 18, 0.85);
+        backdrop-filter: blur(16px);
+        border: 0.5px solid rgba(197, 160, 89, 0.3);
+        padding: 20px;
+        pointer-events: auto;
+        border-radius: 4px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      }
+      #top-bar {
+        position: absolute;
+        top: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 10px 24px;
+        background: rgba(10, 13, 18, 0.85);
+        backdrop-filter: blur(16px);
+        border: 0.5px solid var(--gold);
+        border-radius: 4px;
+        pointer-events: auto;
+        font-family: "JetBrains Mono", monospace;
+      }
+      #top-bar .logo {
+        font-family: "Libre Caslon Text", serif;
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--goldl);
+      }
+      #top-bar .sep {
+        color: var(--bronze);
+      }
+      #top-bar .title {
+        font-size: 10px;
+        color: var(--goldl);
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+      }
+      #top-bar .case-name {
+        font-size: 11px;
+        color: var(--amber);
+        letter-spacing: 0.15em;
+      }
+      #top-bar .back-btn {
+        padding: 6px 14px;
+        background: transparent;
+        border: 1px solid var(--gold);
+        color: var(--goldl);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      #top-bar .back-btn:hover {
+        background: var(--gold);
+        color: var(--surface);
+      }
+      #route-panel {
+        top: 80px;
+        left: 20px;
+        width: 320px;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+      }
+      .panel-title {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--gold);
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .panel-title .count {
+        color: var(--amber);
+        font-size: 10px;
+      }
+      .city-card {
+        background: rgba(197, 160, 89, 0.05);
+        border: 1px solid rgba(197, 160, 89, 0.2);
+        padding: 14px 16px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.3s;
+        position: relative;
+      }
+      .city-card:hover {
+        background: rgba(197, 160, 89, 0.1);
+        border-color: var(--gold);
+        transform: translateX(4px);
+      }
+      .city-card.active {
+        border-color: var(--amber);
+        background: rgba(255, 191, 0, 0.08);
+      }
+      .city-card.visited {
+        opacity: 0.5;
+      }
+      .city-card.visited::after {
+        content: "✓";
+        position: absolute;
+        top: 12px;
+        right: 14px;
+        color: var(--green);
+        font-size: 16px;
+        font-weight: 700;
+      }
+      .city-card.target {
+        border-color: var(--red);
+        background: rgba(239, 68, 68, 0.08);
+        animation: pulse-target 2s infinite;
+      }
+      @keyframes pulse-target {
+        0%,
+        100% {
+          box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+        }
+        50% {
+          box-shadow: 0 0 35px rgba(239, 68, 68, 0.6);
+        }
+      }
+      .city-name {
+        font-family: "Libre Caslon Text", serif;
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--goldl);
+        margin-bottom: 2px;
+      }
+      .city-country {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--onv);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .city-time {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--onv);
+        margin-top: 4px;
+        opacity: 0.7;
+      }
+      .city-status {
+        display: inline-block;
+        padding: 2px 8px;
+        margin-top: 8px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        border-radius: 2px;
+      }
+      .city-status.current {
+        background: rgba(255, 191, 0, 0.2);
+        color: var(--amber);
+      }
+      .city-status.visited {
+        background: rgba(74, 222, 128, 0.15);
+        color: var(--green);
+      }
+      .city-status.next {
+        background: rgba(59, 130, 246, 0.15);
+        color: var(--blue);
+      }
+      .city-status.target {
+        background: rgba(239, 68, 68, 0.2);
+        color: var(--red);
+      }
+      #intel-panel {
+        top: 80px;
+        right: 20px;
+        width: 300px;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+      }
+      .info-section {
+        margin-bottom: 16px;
+      }
+      .info-label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--onv);
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        margin-bottom: 6px;
+      }
+      .info-value {
+        font-family: "Manrope", sans-serif;
+        font-size: 14px;
+        color: var(--on);
+      }
+      .info-value.timer {
+        color: var(--amber);
+        font-family: "JetBrains Mono", monospace;
+        font-weight: 700;
+      }
+      .info-value.timer.critical {
+        color: var(--red);
+      }
+      .info-value.target {
+        color: var(--red);
+        font-weight: 700;
+      }
+      .info-value.local-time {
+        font-family: "JetBrains Mono", monospace;
+        font-weight: 700;
+        color: var(--goldl);
+        font-size: 16px;
+      }
+      #city-details {
+        display: none;
+        margin-top: 8px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(197, 160, 89, 0.2);
+      }
+      #city-details.visible {
+        display: block;
+      }
+      .city-heading {
+        font-family: "Libre Caslon Text", serif;
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--goldl);
+        margin-bottom: 4px;
+      }
+      .city-sub {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--bronze);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+      }
+      .intel-btn {
+        width: 100%;
+        margin-top: 16px;
+        padding: 14px;
+        background: var(--gold);
+        color: var(--surface);
+        border: none;
+        border-radius: 3px;
+        font-family: "JetBrains Mono", monospace;
+        font-weight: 700;
+        font-size: 12px;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+      .intel-btn:hover:not(:disabled) {
+        background: var(--amber);
+      }
+      .intel-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .intel-btn.secondary {
+        background: transparent;
+        color: var(--goldl);
+        border: 1px solid var(--gold);
+        margin-top: 8px;
+      }
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(8px);
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+      }
+      .modal-backdrop.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .travel-modal {
+        max-width: 560px;
+        width: 100%;
+        background: #0a0d12;
+        border: 1px solid var(--gold);
+        padding: 32px;
+        max-height: 85vh;
+        overflow-y: auto;
+      }
+      .travel-header {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--gold);
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        text-align: center;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid rgba(197, 160, 89, 0.3);
+      }
+      .travel-title {
+        font-family: "Libre Caslon Text", serif;
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--goldl);
+        text-align: center;
+        margin-bottom: 24px;
+      }
+      .transport-option {
+        background: rgba(0, 51, 68, 0.3);
+        border: 1px solid rgba(197, 160, 89, 0.3);
+        padding: 20px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        transition: all 0.3s;
+        position: relative;
+      }
+      .transport-option:hover {
+        border-color: var(--gold);
+        transform: translateX(4px);
+      }
+      .transport-option.recommended::after {
+        content: "RECOMENDADO";
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: var(--green);
+        color: var(--surface);
+        font-size: 8px;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        padding: 4px 10px;
+        font-family: "JetBrains Mono", monospace;
+      }
+      .transport-icon {
+        width: 48px;
+        height: 48px;
+        background: rgba(197, 160, 89, 0.1);
+        border: 1px solid var(--gold);
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: var(--gold);
+        margin-bottom: 12px;
+      }
+      .transport-name {
+        font-family: "Libre Caslon Text", serif;
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--goldl);
+        margin-bottom: 4px;
+      }
+      .transport-desc {
+        font-family: "Manrope", sans-serif;
+        font-size: 12px;
+        color: var(--onv);
+        margin-bottom: 12px;
+      }
+      .transport-stats {
+        display: flex;
+        gap: 16px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(197, 160, 89, 0.2);
+      }
+      .stat {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+      }
+      .stat .label {
+        color: var(--bronze);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .stat .value {
+        color: var(--amber);
+        font-weight: 700;
+        margin-left: 6px;
+      }
+      .travel-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+        justify-content: flex-end;
+      }
+      .btn-modal {
+        padding: 12px 24px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        cursor: pointer;
+        background: transparent;
+        color: var(--onv);
+        border: 1px solid rgba(197, 160, 89, 0.4);
+      }
+      .btn-modal:hover {
+        background: rgba(197, 160, 89, 0.1);
+        color: var(--on);
+      }
+      .travel-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 200;
+        background: rgba(0, 0, 0, 0.35);
+        display: flex;
+        align-items: flex-end;
+        justify-content: flex-start;
+        padding: 40px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.4s;
+      }
+      .travel-overlay.active {
+        opacity: 1;
+      }
+      .travel-panel {
+        pointer-events: auto;
+        background: rgba(10, 13, 18, 0.92);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--gold);
+        border-radius: 4px;
+        padding: 24px 32px;
+        max-width: 400px;
+        width: 100%;
+      }
+      .travel-overlay h2 {
+        font-family: "Libre Caslon Text", serif;
+        font-size: 22px;
+        color: var(--goldl);
+        margin-bottom: 4px;
+      }
+      .travel-overlay p {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        color: var(--onv);
+        margin-bottom: 16px;
+      }
+      .travel-timer {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 40px;
+        font-weight: 700;
+        color: var(--amber);
+        margin-bottom: 12px;
+      }
+      .travel-progress {
+        height: 4px;
+        background: rgba(197, 160, 89, 0.15);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .travel-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--gold), var(--amber));
+        transition: width 0.3s;
+      }
+      .travel-hint {
+        margin-top: 12px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        color: var(--bronze);
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+      }
+      .sleep-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 210;
+        background: rgba(0, 0, 0, 0.85);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.6s;
+      }
+      .sleep-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .sleep-icon {
+        font-size: 80px;
+      }
+      .sleep-overlay h2 {
+        font-family: "Libre Caslon Text", serif;
+        font-size: 28px;
+        color: #93c5fd;
+      }
+      .sleep-timer {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 40px;
+        font-weight: 700;
+        color: #93c5fd;
+      }
+      .sleep-reason {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--onv);
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        padding: 6px 14px;
+        border: 1px solid rgba(147, 197, 253, 0.3);
+      }
+      #loading {
+        position: fixed;
+        inset: 0;
+        background: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 300;
+        flex-direction: column;
+        gap: 20px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        color: var(--gold);
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+      }
+      .spinner {
+        width: 50px;
+        height: 50px;
+        border: 2px solid rgba(197, 160, 89, 0.2);
+        border-top-color: var(--gold);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .hidden {
+        display: none !important;
+      }
+      .toast {
+        position: fixed;
+        bottom: 40px;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        background: var(--petrol);
+        border: 1px solid var(--gold);
+        padding: 12px 22px;
+        z-index: 400;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--goldl);
+        opacity: 0;
+        transition: all 0.3s;
+        pointer-events: none;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+      .toast.error {
+        border-color: var(--red);
+        color: #fecaca;
+      }
+      .toast.success {
+        border-color: var(--green);
+        color: #bbf7d0;
+      }
+      @media (max-width: 820px) {
+        #route-panel {
+          width: 260px;
+          left: 12px;
+        }
+        #intel-panel {
+          width: 260px;
+          right: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loading">
+      <div class="spinner"></div>
+      <div>Sincronizando Satélite</div>
     </div>
-  </div>
-</div>
-<div class="modal-backdrop" id="travelModal">
-  <div class="travel-modal">
-    <div class="travel-header">Planejamento de Deslocamento</div>
-    <div class="travel-title" id="travelTitle">—</div>
-    <div id="transportOptions"></div>
-    <div class="travel-actions"><button class="btn-modal" id="btnCancelTravel"><i class="fas fa-times"></i> Cancelar</button></div>
-  </div>
-</div>
-<div class="travel-overlay" id="travelOverlay">
-  <div class="travel-panel">
-    <h2 id="travelOverlayTitle">Em Trânsito</h2>
-    <p id="travelOverlayDesc">Viajando...</p>
-    <div class="travel-timer" id="travelTimer">00:00</div>
-    <div class="travel-progress"><div class="travel-progress-fill" id="travelProgressFill"></div></div>
-    <div class="travel-hint">Satélite rastreando em tempo real</div>
-  </div>
-</div>
-<div class="sleep-overlay" id="sleepOverlay">
-  <div class="sleep-icon">🌙</div>
-  <h2 id="sleepTitle">Descansando</h2>
-  <div class="sleep-timer" id="sleepTimer">0h</div>
-  <div class="sleep-reason" id="sleepReason">Sono obrigatório</div>
-</div>
-<div class="toast" id="toast"></div>
+    <div id="globe-container"></div>
+    <div class="scanlines"></div>
+    <div class="film-grain"></div>
+    <div class="vignette"></div>
+    <div id="ui-layer">
+      <div id="top-bar">
+        <div class="logo">M<span class="sep">:</span>I</div>
+        <div class="title">MAPA GLOBAL</div>
+        <div class="case-name" id="caseName">—</div>
+        <a href="02-hq.html" class="back-btn"
+          ><i class="fas fa-arrow-left"></i> HQ</a
+        >
+      </div>
+      <div id="route-panel" class="panel">
+        <div class="panel-title">
+          <span>ROTA DO CASO</span><span class="count" id="route-count">0</span>
+        </div>
+        <div id="route-list"></div>
+      </div>
+      <div id="intel-panel" class="panel">
+        <div class="info-section">
+          <div class="info-label">Status da Operação</div>
+          <div class="info-value" id="op-status">Aguardando seleção</div>
+        </div>
+        <div class="info-section">
+          <div class="info-label">Tempo Restante</div>
+          <div class="info-value timer" id="op-timer">—</div>
+        </div>
+        <div class="info-section">
+          <div class="info-label">Horário Local</div>
+          <div class="info-value local-time" id="op-local-time">—</div>
+        </div>
+        <div class="info-section">
+          <div class="info-label">Artefato em Jogo</div>
+          <div class="info-value" id="op-artifact">—</div>
+        </div>
+        <div class="info-section" id="targetSection" style="display: none">
+          <div class="info-label">Alvo Rastreado</div>
+          <div class="info-value target" id="op-target">—</div>
+        </div>
+        <div id="city-details">
+          <div class="city-heading" id="cityHeading">—</div>
+          <div class="city-sub" id="citySub">—</div>
+          <div class="info-section">
+            <div class="info-label">País</div>
+            <div class="info-value" id="cityCountry">—</div>
+          </div>
+          <div class="info-section">
+            <div class="info-label">Fuso Horário</div>
+            <div class="info-value" id="cityTimezone">—</div>
+          </div>
+          <div class="info-section">
+            <div class="info-label">Status</div>
+            <div class="info-value" id="cityStatus">—</div>
+          </div>
+          <button class="intel-btn" id="actionBtn">
+            <i class="fas fa-plane-departure"></i> Investigar Cidade
+          </button>
+          <button class="intel-btn secondary" id="cancelBtn">
+            Cancelar Seleção
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-backdrop" id="travelModal">
+      <div class="travel-modal">
+        <div class="travel-header">Planejamento de Deslocamento</div>
+        <div class="travel-title" id="travelTitle">—</div>
+        <div id="transportOptions"></div>
+        <div class="travel-actions">
+          <button class="btn-modal" id="btnCancelTravel">
+            <i class="fas fa-times"></i> Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="travel-overlay" id="travelOverlay">
+      <div class="travel-panel">
+        <h2 id="travelOverlayTitle">Em Trânsito</h2>
+        <p id="travelOverlayDesc">Viajando...</p>
+        <div class="travel-timer" id="travelTimer">00:00</div>
+        <div class="travel-progress">
+          <div class="travel-progress-fill" id="travelProgressFill"></div>
+        </div>
+        <div class="travel-hint">Satélite rastreando em tempo real</div>
+      </div>
+    </div>
+    <div class="sleep-overlay" id="sleepOverlay">
+      <div class="sleep-icon">🌙</div>
+      <h2 id="sleepTitle">Descansando</h2>
+      <div class="sleep-timer" id="sleepTimer">0h</div>
+      <div class="sleep-reason" id="sleepReason">Sono obrigatório</div>
+    </div>
+    <div class="toast" id="toast"></div>
 
-<script src="../database.js"></script>
-<script>
-(function(global){'use strict';
-const CASE_KEY='minexus_case_001';
-const DEFAULT_TIME_STATE={timeLimitHours:48,currentHour:9,currentDay:1,currentCityTZ:'UTC-5'};
-function parseTZ(tz){if(!tz)return 0;const m=tz.match(/UTC([+-])(\d+(?::\d+)?)/);if(!m)return 0;const s=m[1]==='+'?1:-1;const q=m[2].split(':');return s*(parseInt(q[0],10)+(q[1]?parseInt(q[1],10)/60:0));}
-function loadCase(){try{const s=localStorage.getItem(CASE_KEY);return s?JSON.parse(s):null;}catch(e){return null;}}
-function saveCase(d){try{localStorage.setItem(CASE_KEY,JSON.stringify(d));}catch(e){}}
-function formatTime(h){var hh=Math.floor(h),mm=Math.floor((h-hh)*60);return (hh<10?'0':'')+hh+':'+(mm<10?'0':'')+mm;}
-function formatTimeLeft(h){if(h<=0)return 'ESGOTADO';const d=Math.floor(h/24),hh=Math.floor(h%24),m=Math.floor((h-Math.floor(h))*60);if(d>0)return d+'d '+hh+'h';if(hh>0)return hh+'h '+m+'min';return m+'min';}
-function consumeTime(hours,cityTZ){if(hours<=0)return{success:false};const d=loadCase();if(!d)return{success:false};if(!d.timeState)d.timeState={...DEFAULT_TIME_STATE};if(typeof d.timeLimitHours!=='number')d.timeLimitHours=d.timeState.timeLimitHours;let nh=d.timeState.currentHour+hours;let ov=0;while(nh>=24){nh-=24;ov++;}d.timeState.currentHour=nh;d.timeState.currentDay+=ov;d.timeLimitHours=Math.max(0,d.timeLimitHours-hours);d.timeState.timeLimitHours=d.timeLimitHours;if(cityTZ)d.timeState.currentCityTZ=cityTZ;saveCase(d);return{success:true,timeLeft:d.timeLimitHours,day:d.timeState.currentDay,exhausted:d.timeLimitHours<=0};}
-function getLocalTime(cityTZ){const d=loadCase();if(!d||!d.timeState)return{hour:9,formatted:'09:00',isNight:false,isDawn:false,isDusk:false,day:1};const diff=parseTZ(cityTZ)-parseTZ(d.timeState.currentCityTZ||'UTC-5');let h=d.timeState.currentHour+diff;while(h>=24)h-=24;while(h<0)h+=24;return{hour:Math.floor(h),formatted:formatTime(h),isNight:h>=22||h<6,isDawn:h>=5&&h<7,isDusk:h>=19&&h<21,day:d.timeState.currentDay||1};}
-function calculateSleep(a,b,hours){var need=(hours>=6)?4:0;return{sleepNeeded:need,reason:need?'Sono obrigatório após voo longo':''};}
-global.NexusTime={consumeTime,getLocalTime,formatTime,formatTimeLeft,parseTZ,calculateSleep};
-})(window);
-</script>
-<script>
-(function(){'use strict';
-const CASE_KEY='minexus_case_001', WARRANT_KEY='minexus_warrant';
-var Career={
-  get:function(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v==null?d:v;}catch(e){return d;}},
-  set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}},
-  resolved:function(){return this.get('minexus_resolved',0);},
-  fail:function(cd){this.set('minexus_resolved',this.resolved()+1);var f=this.get('minexus_fugitives',[]);f.push({culpritId:cd.culprit&&cd.culprit.id,artifact:cd.artifact,artifactIcon:cd.artifactIcon,artifactImage:cd.artifactImage,codename:cd.codename,reopenAt:this.resolved()+1,at:Date.now()});this.set('minexus_fugitives',f);}
-};
-window.NexusCareer=Career;
-const DB=window.NEXUS_DATABASE||{cities:{},routes:{}};
-const cityCoords=DB.cities||{};
-function normKey(s){return (s||'').replace(/\s+/g,'_');}
-let caseData=null,warrantData=null,selectedCity=null,isTraveling=false,autoRotateTimer=null;
-try{caseData=JSON.parse(localStorage.getItem(CASE_KEY)||'null');}catch(e){}
-try{warrantData=JSON.parse(localStorage.getItem(WARRANT_KEY)||'null');}catch(e){}
-if(!caseData){alert('Nenhum caso ativo. Selecione um caso na HQ.');window.location.href='02-hq.html';return;}
-if(!caseData.timeState)caseData.timeState={timeLimitHours:caseData.timeLimitHours||48,currentHour:9,currentDay:1,currentCityTZ:'UTC-5'};
-function audio(ev){try{if(window.ArchiveAudio&&typeof window.ArchiveAudio[ev]==='function')window.ArchiveAudio[ev]();}catch(e){}}
-let toastTimer;
-function showToast(msg,type){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type&&type!=='info'?' '+type:'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3500);}
-function persist(){try{localStorage.setItem(CASE_KEY,JSON.stringify(caseData));}catch(e){}}
-function getTimeIcon(n,d,dk){if(n)return '🌙';if(d)return '🌅';if(dk)return '🌇';return '☀️';}
-function getTravelOptions(from,to){
-  const key=normKey(from)+'_'+normKey(to),rev=normKey(to)+'_'+normKey(from);
-  const route=(DB.routes||{})[key]||(DB.routes||{})[rev];
-  if(!route)return [{type:'flight',name:'Vôo Direto',icon:'✈️',time:12,risk:'med',desc:'Vôo comercial direto (estimado)'}];
-  const o=[];
-  if(route.car)o.push({type:'car',name:'Por Terra',icon:'🚗',time:route.car,risk:route.car>12?'high':'med',desc:'Rota direta via estradas ('+route.distance+'km)'});
-  o.push({type:'flight',name:'Vôo Direto',icon:'✈️',time:route.flight+route.flightWait,risk:'low',desc:'Vôo '+route.flight+'h + '+route.flightWait+'h de espera'});
-  if(route.connection)o.push({type:'flight-connection',name:'Vôo com Conexão',icon:'✈️',time:route.flight+route.flightWait+3,risk:'med',desc:'Escala em '+route.connection+' (+3h)'});
-  return o;
-}
-function hasCluesPointingToCity(n){
-  if(!caseData.clues||!caseData.clues.geo||!caseData.clues.geo.length)return false;
-  const kw=(cityCoords[n]||{}).keywords||[];if(!kw.length)return false;
-  for(const c of caseData.clues.geo){const t=(c.text||'').toLowerCase();for(const k of kw){if(t.includes(k.toLowerCase()))return true;}}
-  return false;
-}
+    <script src="../database.js"></script>
+    <script>
+      (function (global) {
+        "use strict";
+        const CASE_KEY = "minexus_case_001";
+        const DEFAULT_TIME_STATE = {
+          timeLimitHours: 48,
+          currentHour: 9,
+          currentDay: 1,
+          currentCityTZ: "UTC-5",
+        };
+        function parseTZ(tz) {
+          if (!tz) return 0;
+          const m = tz.match(/UTC([+-])(\d+(?::\d+)?)/);
+          if (!m) return 0;
+          const s = m[1] === "+" ? 1 : -1;
+          const q = m[2].split(":");
+          return (
+            s * (parseInt(q[0], 10) + (q[1] ? parseInt(q[1], 10) / 60 : 0))
+          );
+        }
+        function loadCase() {
+          try {
+            const s = localStorage.getItem(CASE_KEY);
+            return s ? JSON.parse(s) : null;
+          } catch (e) {
+            return null;
+          }
+        }
+        function saveCase(d) {
+          try {
+            localStorage.setItem(CASE_KEY, JSON.stringify(d));
+          } catch (e) {}
+        }
+        function formatTime(h) {
+          var hh = Math.floor(h),
+            mm = Math.floor((h - hh) * 60);
+          return (hh < 10 ? "0" : "") + hh + ":" + (mm < 10 ? "0" : "") + mm;
+        }
+        function formatTimeLeft(h) {
+          if (h <= 0) return "ESGOTADO";
+          const d = Math.floor(h / 24),
+            hh = Math.floor(h % 24),
+            m = Math.floor((h - Math.floor(h)) * 60);
+          if (d > 0) return d + "d " + hh + "h";
+          if (hh > 0) return hh + "h " + m + "min";
+          return m + "min";
+        }
+        function consumeTime(hours, cityTZ) {
+          if (hours <= 0) return { success: false };
+          const d = loadCase();
+          if (!d) return { success: false };
+          if (!d.timeState) d.timeState = { ...DEFAULT_TIME_STATE };
+          if (typeof d.timeLimitHours !== "number")
+            d.timeLimitHours = d.timeState.timeLimitHours;
+          let nh = d.timeState.currentHour + hours;
+          let ov = 0;
+          while (nh >= 24) {
+            nh -= 24;
+            ov++;
+          }
+          d.timeState.currentHour = nh;
+          d.timeState.currentDay += ov;
+          d.timeLimitHours = Math.max(0, d.timeLimitHours - hours);
+          d.timeState.timeLimitHours = d.timeLimitHours;
+          if (cityTZ) d.timeState.currentCityTZ = cityTZ;
+          saveCase(d);
+          return {
+            success: true,
+            timeLeft: d.timeLimitHours,
+            day: d.timeState.currentDay,
+            exhausted: d.timeLimitHours <= 0,
+          };
+        }
+        function getLocalTime(cityTZ) {
+          const d = loadCase();
+          if (!d || !d.timeState)
+            return {
+              hour: 9,
+              formatted: "09:00",
+              isNight: false,
+              isDawn: false,
+              isDusk: false,
+              day: 1,
+            };
+          const diff =
+            parseTZ(cityTZ) - parseTZ(d.timeState.currentCityTZ || "UTC-5");
+          let h = d.timeState.currentHour + diff;
+          while (h >= 24) h -= 24;
+          while (h < 0) h += 24;
+          return {
+            hour: Math.floor(h),
+            formatted: formatTime(h),
+            isNight: h >= 22 || h < 6,
+            isDawn: h >= 5 && h < 7,
+            isDusk: h >= 19 && h < 21,
+            day: d.timeState.currentDay || 1,
+          };
+        }
+        function calculateSleep(a, b, hours) {
+          var need = hours >= 6 ? 4 : 0;
+          return {
+            sleepNeeded: need,
+            reason: need ? "Sono obrigatório após voo longo" : "",
+          };
+        }
+        global.NexusTime = {
+          consumeTime,
+          getLocalTime,
+          formatTime,
+          formatTimeLeft,
+          parseTZ,
+          calculateSleep,
+        };
+      })(window);
+    </script>
+    <script>
+      (function () {
+        "use strict";
+        const CASE_KEY = "minexus_case_001",
+          WARRANT_KEY = "minexus_warrant";
+        var Career = {
+          get: function (k, d) {
+            try {
+              var v = JSON.parse(localStorage.getItem(k));
+              return v == null ? d : v;
+            } catch (e) {
+              return d;
+            }
+          },
+          set: function (k, v) {
+            try {
+              localStorage.setItem(k, JSON.stringify(v));
+            } catch (e) {}
+          },
+          resolved: function () {
+            return this.get("minexus_resolved", 0);
+          },
+          fail: function (cd) {
+            this.set("minexus_resolved", this.resolved() + 1);
+            var f = this.get("minexus_fugitives", []);
+            f.push({
+              culpritId: cd.culprit && cd.culprit.id,
+              artifact: cd.artifact,
+              artifactIcon: cd.artifactIcon,
+              artifactImage: cd.artifactImage,
+              codename: cd.codename,
+              reopenAt: this.resolved() + 1,
+              at: Date.now(),
+            });
+            this.set("minexus_fugitives", f);
+          },
+        };
+        window.NexusCareer = Career;
+        const DB = window.NEXUS_DATABASE || { cities: {}, routes: {} };
+        const cityCoords = DB.cities || {};
+        function normKey(s) {
+          return (s || "").replace(/\s+/g, "_");
+        }
+        let caseData = null,
+          warrantData = null,
+          selectedCity = null,
+          isTraveling = false,
+          autoRotateTimer = null;
+        try {
+          caseData = JSON.parse(localStorage.getItem(CASE_KEY) || "null");
+        } catch (e) {}
+        try {
+          warrantData = JSON.parse(localStorage.getItem(WARRANT_KEY) || "null");
+        } catch (e) {}
+        if (!caseData) {
+          alert("Nenhum caso ativo. Selecione um caso na HQ.");
+          window.location.href = "02-hq.html";
+          return;
+        }
+        if (!caseData.timeState)
+          caseData.timeState = {
+            timeLimitHours: caseData.timeLimitHours || 48,
+            currentHour: 9,
+            currentDay: 1,
+            currentCityTZ: "UTC-5",
+          };
+        function audio(ev) {
+          try {
+            if (
+              window.ArchiveAudio &&
+              typeof window.ArchiveAudio[ev] === "function"
+            )
+              window.ArchiveAudio[ev]();
+          } catch (e) {}
+        }
+        let toastTimer;
+        function showToast(msg, type) {
+          const t = document.getElementById("toast");
+          t.textContent = msg;
+          t.className =
+            "toast show" + (type && type !== "info" ? " " + type : "");
+          clearTimeout(toastTimer);
+          toastTimer = setTimeout(() => t.classList.remove("show"), 3500);
+        }
+        function persist() {
+          try {
+            localStorage.setItem(CASE_KEY, JSON.stringify(caseData));
+          } catch (e) {}
+        }
+        function getTimeIcon(n, d, dk) {
+          if (n) return "🌙";
+          if (d) return "🌅";
+          if (dk) return "🌇";
+          return "☀️";
+        }
+        function getTravelOptions(from, to) {
+          const key = normKey(from) + "_" + normKey(to),
+            rev = normKey(to) + "_" + normKey(from);
+          const route = (DB.routes || {})[key] || (DB.routes || {})[rev];
+          if (!route)
+            return [
+              {
+                type: "flight",
+                name: "Vôo Direto",
+                icon: "✈️",
+                time: 12,
+                risk: "med",
+                desc: "Vôo comercial direto (estimado)",
+              },
+            ];
+          const o = [];
+          if (route.car)
+            o.push({
+              type: "car",
+              name: "Por Terra",
+              icon: "🚗",
+              time: route.car,
+              risk: route.car > 12 ? "high" : "med",
+              desc: "Rota direta via estradas (" + route.distance + "km)",
+            });
+          o.push({
+            type: "flight",
+            name: "Vôo Direto",
+            icon: "✈️",
+            time: route.flight + route.flightWait,
+            risk: "low",
+            desc:
+              "Vôo " + route.flight + "h + " + route.flightWait + "h de espera",
+          });
+          if (route.connection)
+            o.push({
+              type: "flight-connection",
+              name: "Vôo com Conexão",
+              icon: "✈️",
+              time: route.flight + route.flightWait + 3,
+              risk: "med",
+              desc: "Escala em " + route.connection + " (+3h)",
+            });
+          return o;
+        }
+        function hasCluesPointingToCity(n) {
+          var clues = (caseData.clues && caseData.clues.geo) || [];
+          for (var i = 0; i < clues.length; i++) {
+            if (clues[i].pointsTo && clues[i].pointsTo.indexOf(n) >= 0)
+              return true;
+          }
+          var kw = (cityCoords[n] || {}).keywords || [];
+          if (!kw.length) return false;
+          for (var j = 0; j < clues.length; j++) {
+            var t = (clues[j].text || "").toLowerCase();
+            for (var k = 0; k < kw.length; k++) {
+              if (t.indexOf(kw[k].toLowerCase()) >= 0) return true;
+            }
+          }
+          return false;
+        }
 
-/* ✅ CONTROLE DE ÓRBITA PRÓPRIO (sem CDN externo) */
-function SimpleControls(camera,dom){
-  this.camera=camera;this.dom=dom;this.target=new THREE.Vector3();
-  this.autoRotate=true;this.autoRotateSpeed=1.0;this.minDistance=1.5;this.maxDistance=5;
-  this.radius=camera.position.clone().sub(this.target).length();
-  this.dTheta=0;this.dPhi=0;this.rotating=false;this.lastX=0;this.lastY=0;
-  this._ls={};
-  var self=this;
-  dom.addEventListener('pointerdown',function(e){self.rotating=true;self.lastX=e.clientX;self.lastY=e.clientY;self.dispatch('start');});
-  window.addEventListener('pointerup',function(){self.rotating=false;});
-  window.addEventListener('pointermove',function(e){if(!self.rotating)return;var dx=e.clientX-self.lastX,dy=e.clientY-self.lastY;self.lastX=e.clientX;self.lastY=e.clientY;self.dTheta-=2*Math.PI*dx/900;self.dPhi-=2*Math.PI*dy/900;});
-  dom.addEventListener('wheel',function(e){e.preventDefault();var r=self.radius+e.deltaY*0.002;self.radius=Math.max(self.minDistance,Math.min(self.maxDistance,r));},{passive:false});
-}
-SimpleControls.prototype.addEventListener=function(t,fn){(this._ls[t]=this._ls[t]||[]).push(fn);};
-SimpleControls.prototype.dispatch=function(t){(this._ls[t]||[]).forEach(function(fn){fn();});};
-SimpleControls.prototype.update=function(){
-  var off=this.camera.position.clone().sub(this.target);
-  var sph=new THREE.Spherical().setFromVector3(off);
-  if(this.autoRotate)sph.theta+=this.autoRotateSpeed*0.002;
-  sph.theta+=this.dTheta;sph.phi+=this.dPhi;
-  sph.phi=Math.max(0.2,Math.min(Math.PI-0.2,sph.phi));
-  sph.radius=this.radius;sph.makeSafe();
-  off.setFromSpherical(sph);
-  this.camera.position.copy(this.target).add(off);
-  this.camera.lookAt(this.target);
-  this.dTheta*=0.85;this.dPhi*=0.85;
-};
+        /* ✅ CONTROLE DE ÓRBITA PRÓPRIO (sem CDN externo) */
+        function SimpleControls(camera, dom) {
+          this.camera = camera;
+          this.dom = dom;
+          this.target = new THREE.Vector3();
+          this.autoRotate = true;
+          this.autoRotateSpeed = 1.0;
+          this.minDistance = 1.5;
+          this.maxDistance = 5;
+          this.radius = camera.position.clone().sub(this.target).length();
+          this.dTheta = 0;
+          this.dPhi = 0;
+          this.rotating = false;
+          this.lastX = 0;
+          this.lastY = 0;
+          this._ls = {};
+          var self = this;
+          dom.addEventListener("pointerdown", function (e) {
+            self.rotating = true;
+            self.lastX = e.clientX;
+            self.lastY = e.clientY;
+            self.dispatch("start");
+          });
+          window.addEventListener("pointerup", function () {
+            self.rotating = false;
+          });
+          window.addEventListener("pointermove", function (e) {
+            if (!self.rotating) return;
+            var dx = e.clientX - self.lastX,
+              dy = e.clientY - self.lastY;
+            self.lastX = e.clientX;
+            self.lastY = e.clientY;
+            self.dTheta -= (2 * Math.PI * dx) / 900;
+            self.dPhi -= (2 * Math.PI * dy) / 900;
+          });
+          dom.addEventListener(
+            "wheel",
+            function (e) {
+              e.preventDefault();
+              var r = self.radius + e.deltaY * 0.002;
+              self.radius = Math.max(
+                self.minDistance,
+                Math.min(self.maxDistance, r),
+              );
+            },
+            { passive: false },
+          );
+        }
+        SimpleControls.prototype.addEventListener = function (t, fn) {
+          (this._ls[t] = this._ls[t] || []).push(fn);
+        };
+        SimpleControls.prototype.dispatch = function (t) {
+          (this._ls[t] || []).forEach(function (fn) {
+            fn();
+          });
+        };
+        SimpleControls.prototype.update = function () {
+          var off = this.camera.position.clone().sub(this.target);
+          var sph = new THREE.Spherical().setFromVector3(off);
+          if (this.autoRotate) sph.theta += this.autoRotateSpeed * 0.002;
+          sph.theta += this.dTheta;
+          sph.phi += this.dPhi;
+          sph.phi = Math.max(0.2, Math.min(Math.PI - 0.2, sph.phi));
+          sph.radius = this.radius;
+          sph.makeSafe();
+          off.setFromSpherical(sph);
+          this.camera.position.copy(this.target).add(off);
+          this.camera.lookAt(this.target);
+          this.dTheta *= 0.85;
+          this.dPhi *= 0.85;
+        };
 
-let scene,camera,renderer,controls,globe,globeGroup,markers=[],hoveredMarker=null;
-const raycaster=new THREE.Raycaster();const mouse=new THREE.Vector2();
-let mouseDownPos={x:0,y:0},isDragging=false;
+        let scene,
+          camera,
+          renderer,
+          controls,
+          globe,
+          globeGroup,
+          markers = [],
+          hoveredMarker = null;
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        let mouseDownPos = { x: 0, y: 0 },
+          isDragging = false;
 
-/* ✅ NOVAS: funções de rota e avião para animação de voo */
-function latLonToVec(lat,lon,r){
-  const phi=(90-lat)*Math.PI/180, th=(lon+180)*Math.PI/180;
-  return new THREE.Vector3(-(r*Math.sin(phi)*Math.cos(th)), r*Math.cos(phi), r*Math.sin(phi)*Math.sin(th));
-}
-function calculateRoute(from,to,isCar){
-  const pts=[];const seg=60;
-  const a=latLonToVec(from.lat,from.lon,1), b=latLonToVec(to.lat,to.lon,1);
-  for(let i=0;i<=seg;i++){
-    const t=i/seg;
-    const p=a.clone().lerp(b,t).normalize();
-    const arc=isCar?1.03:(1.05+Math.sin(Math.PI*t)*0.28);
-    pts.push(p.multiplyScalar(arc));
-  }
-  return pts;
-}
-function createRouteLine(pts,isCar){
-  const geo=new THREE.BufferGeometry().setFromPoints(pts);
-  const mat=new THREE.LineBasicMaterial({color:isCar?0x4ade80:0xffbf00,transparent:true,opacity:0.7});
-  return new THREE.Line(geo,mat);
-}
-function createPlaneIcon(isCar){
-  const g=new THREE.Group();
-  const core=new THREE.Mesh(new THREE.SphereGeometry(0.02,12,12),new THREE.MeshBasicMaterial({color:isCar?0x4ade80:0xffbf00}));
-  const halo=new THREE.Mesh(new THREE.SphereGeometry(0.045,12,12),new THREE.MeshBasicMaterial({color:isCar?0x4ade80:0xffbf00,transparent:true,opacity:0.35}));
-  g.add(core);g.add(halo);
-  return g;
-}
+        /* ✅ NOVAS: funções de rota e avião para animação de voo */
+        function latLonToVec(lat, lon, r) {
+          const phi = ((90 - lat) * Math.PI) / 180,
+            th = ((lon + 180) * Math.PI) / 180;
+          return new THREE.Vector3(
+            -(r * Math.sin(phi) * Math.cos(th)),
+            r * Math.cos(phi),
+            r * Math.sin(phi) * Math.sin(th),
+          );
+        }
+        function calculateRoute(from, to, isCar) {
+          const pts = [];
+          const seg = 60;
+          const a = latLonToVec(from.lat, from.lon, 1),
+            b = latLonToVec(to.lat, to.lon, 1);
+          for (let i = 0; i <= seg; i++) {
+            const t = i / seg;
+            const p = a.clone().lerp(b, t).normalize();
+            const arc = isCar ? 1.03 : 1.05 + Math.sin(Math.PI * t) * 0.28;
+            pts.push(p.multiplyScalar(arc));
+          }
+          return pts;
+        }
+        function createRouteLine(pts, isCar) {
+          const geo = new THREE.BufferGeometry().setFromPoints(pts);
+          const mat = new THREE.LineBasicMaterial({
+            color: isCar ? 0x4ade80 : 0xffbf00,
+            transparent: true,
+            opacity: 0.7,
+          });
+          return new THREE.Line(geo, mat);
+        }
+        function createPlaneIcon(isCar) {
+          const g = new THREE.Group();
+          const core = new THREE.Mesh(
+            new THREE.SphereGeometry(0.02, 12, 12),
+            new THREE.MeshBasicMaterial({ color: isCar ? 0x4ade80 : 0xffbf00 }),
+          );
+          const halo = new THREE.Mesh(
+            new THREE.SphereGeometry(0.045, 12, 12),
+            new THREE.MeshBasicMaterial({
+              color: isCar ? 0x4ade80 : 0xffbf00,
+              transparent: true,
+              opacity: 0.35,
+            }),
+          );
+          g.add(core);
+          g.add(halo);
+          return g;
+        }
 
-function init(){
-  scene=new THREE.Scene();
-  camera=new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,1000);
-  camera.position.z=3;camera.position.y=0.5;
-  renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
-  renderer.setSize(window.innerWidth,window.innerHeight);renderer.setPixelRatio(window.devicePixelRatio);
-  document.getElementById('globe-container').appendChild(renderer.domElement);
-  controls=(typeof THREE.OrbitControls==='function')?new THREE.OrbitControls(camera,renderer.domElement):new SimpleControls(camera,renderer.domElement);
-  controls.autoRotate=true;controls.autoRotateSpeed=1.0;
-  if('minDistance' in controls){controls.minDistance=1.5;controls.maxDistance=5;}
-  scene.add(new THREE.AmbientLight(0xffffff,0.4));
-  const dl=new THREE.DirectionalLight(0xffffff,1.2);dl.position.set(5,3,5);scene.add(dl);
-  globeGroup=new THREE.Group();scene.add(globeGroup);
-  createGlobe();placeCityMarkers();renderRouteList();updateHeader();updateLocalTime();
-  if(warrantData&&warrantData.correct&&warrantData.targetLocation)showTargetOnGlobe(warrantData.targetLocation);
-  window.addEventListener('resize',onResize);
-  renderer.domElement.addEventListener('mousedown',function(e){mouseDownPos={x:e.clientX,y:e.clientY};isDragging=false;});
-  renderer.domElement.addEventListener('mousemove',onMouseMove);
-  renderer.domElement.addEventListener('mouseup',onMouseUp);
-  controls.addEventListener('start',function(){clearTimeout(autoRotateTimer);autoRotateTimer=setTimeout(function(){if(!isTraveling)controls.autoRotate=true;},3000);});
-  animate();
-}
-function createGlobe(){
-  const loader=new THREE.TextureLoader();loader.crossOrigin='anonymous';
-  globe=new THREE.Mesh(new THREE.SphereGeometry(1,64,64),new THREE.MeshPhongMaterial({color:0x1a4a7c,emissive:0x001a33,specular:0x222244,shininess:15}));
-  globeGroup.add(globe);
-  loader.load('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg',function(t){globe.material.map=t;globe.material.needsUpdate=true;},undefined,function(){});
-  globeGroup.add(new THREE.Mesh(new THREE.SphereGeometry(1.01,32,32),new THREE.MeshBasicMaterial({color:0xc5a059,wireframe:true,transparent:true,opacity:0.12})));
-  const gridMat=new THREE.LineBasicMaterial({color:0xc5a059,transparent:true,opacity:0.15});
-  for(let lat=-60;lat<=60;lat+=30){const phi=(90-lat)*Math.PI/180,pts=[];for(let lon=0;lon<=360;lon+=5){const th=(lon+180)*Math.PI/180;pts.push(new THREE.Vector3(-(1.015*Math.sin(phi)*Math.cos(th)),1.015*Math.cos(phi),1.015*Math.sin(phi)*Math.sin(th)));}globeGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),gridMat));}
-  globeGroup.add(new THREE.Mesh(new THREE.SphereGeometry(1.15,32,32),new THREE.MeshPhongMaterial({color:0x4ade80,transparent:true,opacity:0.08,side:THREE.BackSide})));
-}
-function createMarker(lat,lon,city,status){
-  const phi=(90-lat)*Math.PI/180,th=(lon+180)*Math.PI/180,r=1.05;
-  const g=new THREE.Group();g.position.set(-(r*Math.sin(phi)*Math.cos(th)),r*Math.cos(phi),r*Math.sin(phi)*Math.sin(th));g.lookAt(0,0,0);
-  const color=status==='current'?0xffbf00:status==='visited'?0x4ade80:status==='target'?0xef4444:0xc5a059;
-  g.add(new THREE.Mesh(new THREE.RingGeometry(0.02,0.04,32),new THREE.MeshBasicMaterial({color:color,side:THREE.DoubleSide,transparent:true,opacity:0.8})));
-  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.015,16,16),new THREE.MeshBasicMaterial({color:color})));
-  if(status!=='visited'){const ring=new THREE.Mesh(new THREE.RingGeometry(0.04,0.06,32),new THREE.MeshBasicMaterial({color:color,side:THREE.DoubleSide,transparent:true,opacity:0.3}));ring.userData.isPulsing=true;g.add(ring);}
-  globeGroup.add(g);markers.push({mesh:g,city:city,status:status});
-}
-function placeCityMarkers(){
-  (caseData.cities||[]).forEach(function(city){
-    if(city.revealed===false)return;
-    const c=cityCoords[city.name];if(!c)return;
-    createMarker(c.lat,c.lon,city,city.current?'current':city.visited?'visited':'next');
-  });
-  const cur=(caseData.cities||[]).find(c=>c.current);
-  if(cur)setTimeout(function(){selectCity(cur);focusOnCity(cur);},1600);
-}
-function showTargetOnGlobe(t){
-  const c=cityCoords[t.city];if(!c)return;
-  const phi=(90-c.lat)*Math.PI/180,th=(c.lon+180)*Math.PI/180,r=1.08;
-  const g=new THREE.Group();g.position.set(-(r*Math.sin(phi)*Math.cos(th)),r*Math.cos(phi),r*Math.sin(phi)*Math.sin(th));g.lookAt(0,0,0);
-  g.add(new THREE.Mesh(new THREE.RingGeometry(0.05,0.08,32),new THREE.MeshBasicMaterial({color:0xef4444,side:THREE.DoubleSide,transparent:true,opacity:0.8})));
-  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.025,16,16),new THREE.MeshBasicMaterial({color:0xef4444})));
-  globeGroup.add(g);
-  document.getElementById('targetSection').style.display='block';
-  document.getElementById('op-target').textContent=warrantData.targetName+' — '+t.city;
-  if(!(caseData.cities||[]).find(x=>x.name===t.city)){
-    caseData.cities.push({name:t.city,country:t.country,visited:false,current:false,isTarget:true,revealed:true});
-    persist();renderRouteList();createMarker(c.lat,c.lon,{name:t.city,country:t.country,isTarget:true},'target');
-  }
-}
-function setMouse(x,y){const r=renderer.domElement.getBoundingClientRect();mouse.x=((x-r.left)/r.width)*2-1;mouse.y=-((y-r.top)/r.height)*2+1;}
-function findMarker(mesh){let cur=mesh;while(cur){const f=markers.find(m=>m.mesh===cur);if(f)return f;cur=cur.parent;}return null;}
-function onMouseMove(e){
-  if(mouseDownPos.x!==null){const dx=e.clientX-mouseDownPos.x,dy=e.clientY-mouseDownPos.y;if(Math.sqrt(dx*dx+dy*dy)>5)isDragging=true;}
-  setMouse(e.clientX,e.clientY);raycaster.setFromCamera(mouse,camera);
-  const hit=raycaster.intersectObjects(markers.map(m=>m.mesh),true);
-  renderer.domElement.style.cursor=hit.length?'pointer':'grab';
-}
-function onMouseUp(e){
-  if(!isDragging){setMouse(e.clientX,e.clientY);raycaster.setFromCamera(mouse,camera);const hit=raycaster.intersectObjects(markers.map(m=>m.mesh),true);if(hit.length){const md=findMarker(hit[0].object);if(md){audio('playClick');selectCity(md.city);focusOnCity(md.city);}}}
-  mouseDownPos={x:null,y:null};
-}
-function focusOnCity(city){
-  const c=cityCoords[city.name];if(!c)return;
-  const phi=(90-c.lat)*Math.PI/180,th=(c.lon+180)*Math.PI/180;
-  const end=new THREE.Vector3(-(2.5*Math.sin(phi)*Math.cos(th)),2.5*Math.cos(phi),2.5*Math.sin(phi)*Math.sin(th));
-  const start=camera.position.clone();const t0=Date.now();
-  (function anim(){const p=Math.min((Date.now()-t0)/1000,1);const e=1-Math.pow(1-p,3);camera.position.lerpVectors(start,end,e);controls.update();if(p<1)requestAnimationFrame(anim);})();
-}
-function onResize(){camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);}
-function animate(){
-  requestAnimationFrame(animate);controls.update();
-  markers.forEach(m=>{const ring=m.mesh.children[2];if(ring&&ring.userData.isPulsing){const s=1+Math.sin(Date.now()*0.003)*0.3;ring.scale.set(s,s,s);}});
-  renderer.render(scene,camera);
-}
-function updateHeader(){
-  document.getElementById('caseName').textContent=caseData.codename||'—';
-  const el=document.getElementById('op-timer');const h=caseData.timeLimitHours||0;
-  el.textContent=window.NexusTime.formatTimeLeft(h);el.classList.toggle('critical',h<=12);
-  document.getElementById('op-artifact').textContent=caseData.artifact||'—';
-}
-function updateLocalTime(){
-  const cur=(caseData.cities||[]).find(c=>c.current);
-  const tz=cur?((cityCoords[cur.name]||{}).tz||'UTC-5'):'UTC-5';
-  const l=window.NexusTime.getLocalTime(tz);
-  const el=document.getElementById('op-local-time');
-  el.innerHTML=getTimeIcon(l.isNight,l.isDawn,l.isDusk)+' '+l.formatted+' • Dia '+l.day;
-}
-function renderRouteList(){
-  const list=document.getElementById('route-list');
-  const cities=(caseData.cities||[]).filter(c=>c.revealed!==false);
-  document.getElementById('route-count').textContent=cities.length;
-  list.innerHTML='';
-  cities.forEach(function(city){
-    const card=document.createElement('div');card.className='city-card';
-    if(city.visited)card.classList.add('visited');
-    if(city.current)card.classList.add('active');
-    if(city.isTarget&&!city.visited)card.classList.add('target');
-    let st='',sc='';
-    if(city.current){st='ATUAL';sc='current';}else if(city.visited){st='INVESTIGADA';sc='visited';}else if(city.isTarget){st='ALVO';sc='target';}else{st='PRÓXIMA';sc='next';}
-    const c=cityCoords[city.name];let timeStr='';
-    if(c){const l=window.NexusTime.getLocalTime(c.tz);timeStr='<div class="city-time">'+getTimeIcon(l.isNight,l.isDawn,l.isDusk)+' '+l.formatted+'</div>';}
-    card.innerHTML='<div class="city-name">'+city.name+'</div><div class="city-country">'+(city.country||'—')+'</div>'+timeStr+'<div class="city-status '+sc+'">'+st+'</div>';
-    card.addEventListener('click',function(){if(isTraveling)return;audio('playClick');selectCity(city);focusOnCity(city);});
-    list.appendChild(card);
-  });
-}
-function selectCity(city){
-  if(isTraveling)return;selectedCity=city;
-  const c=cityCoords[city.name]||{country:'—',tz:'—'};
-  document.getElementById('op-status').textContent='Cidade Selecionada';
-  document.getElementById('cityHeading').textContent=city.name;
-  document.getElementById('citySub').textContent='Operação '+caseData.codename;
-  document.getElementById('cityCountry').textContent=c.country||city.country||'—';
-  document.getElementById('cityTimezone').textContent=c.tz||'—';
-  document.getElementById('cityStatus').textContent=city.current?'Operação em andamento':city.visited?'Investigação concluída':city.isTarget?'⚠ Alvo rastreado':'Aguardando deslocamento';
-  document.getElementById('city-details').classList.add('visible');
-  const btn=document.getElementById('actionBtn');
-  if(city.current){btn.disabled=false;btn.innerHTML='<i class="fas fa-search-location"></i> Investigar Agora';btn.onclick=function(){window.location.href='04-cidade.html';};}
-  else if(city.visited){btn.disabled=true;btn.innerHTML='<i class="fas fa-check"></i> Já Investigada';btn.onclick=null;}
-  else{btn.disabled=false;btn.innerHTML='<i class="fas fa-plane"></i> Viajar para '+city.name;btn.onclick=function(){openTravelModal(city);};}
-}
-function openTravelModal(dest){
-  const cur=(caseData.cities||[]).find(c=>c.current);if(!cur)return;
-  if(!dest.isTarget&&!hasCluesPointingToCity(dest.name)&&!confirm('⚠ Nenhuma pista aponta para '+dest.name+'. Prosseguir?'))return;
-  document.getElementById('travelTitle').textContent=cur.name+' → '+dest.name;
-  const opts=getTravelOptions(cur.name,dest.name);
-  const box=document.getElementById('transportOptions');box.innerHTML='';
-  opts.forEach(function(o,i){
-    const d=document.createElement('div');d.className='transport-option'+(i===0?' recommended':'');
-    d.innerHTML='<div class="transport-icon">'+o.icon+'</div><div class="transport-name">'+o.name+'</div><div class="transport-desc">'+o.desc+'</div><div class="transport-stats"><div class="stat"><span class="label">Tempo:</span><span class="value">'+o.time+'h</span></div><div class="stat"><span class="label">Risco:</span><span class="value">'+o.risk.toUpperCase()+'</span></div></div>';
-    d.addEventListener('click',function(){audio('playClick');closeTravel();startTravel(cur,dest,o);});
-    box.appendChild(d);
-  });
-  document.getElementById('travelModal').classList.add('active');
-}
-function closeTravel(){document.getElementById('travelModal').classList.remove('active');}
+        function init() {
+          scene = new THREE.Scene();
+          camera = new THREE.PerspectiveCamera(
+            45,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1000,
+          );
+          camera.position.z = 3;
+          camera.position.y = 0.5;
+          renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+          renderer.setSize(window.innerWidth, window.innerHeight);
+          renderer.setPixelRatio(window.devicePixelRatio);
+          document
+            .getElementById("globe-container")
+            .appendChild(renderer.domElement);
+          controls =
+            typeof THREE.OrbitControls === "function"
+              ? new THREE.OrbitControls(camera, renderer.domElement)
+              : new SimpleControls(camera, renderer.domElement);
+          controls.autoRotate = true;
+          controls.autoRotateSpeed = 1.0;
+          if ("minDistance" in controls) {
+            controls.minDistance = 1.5;
+            controls.maxDistance = 5;
+          }
+          scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+          const dl = new THREE.DirectionalLight(0xffffff, 1.2);
+          dl.position.set(5, 3, 5);
+          scene.add(dl);
+          globeGroup = new THREE.Group();
+          scene.add(globeGroup);
+          createGlobe();
+          placeCityMarkers();
+          renderRouteList();
+          updateHeader();
+          updateLocalTime();
+          if (warrantData && warrantData.correct && warrantData.targetLocation)
+            showTargetOnGlobe(warrantData.targetLocation);
+          window.addEventListener("resize", onResize);
+          renderer.domElement.addEventListener("mousedown", function (e) {
+            mouseDownPos = { x: e.clientX, y: e.clientY };
+            isDragging = false;
+          });
+          renderer.domElement.addEventListener("mousemove", onMouseMove);
+          renderer.domElement.addEventListener("mouseup", onMouseUp);
+          controls.addEventListener("start", function () {
+            clearTimeout(autoRotateTimer);
+            autoRotateTimer = setTimeout(function () {
+              if (!isTraveling) controls.autoRotate = true;
+            }, 3000);
+          });
+          animate();
+        }
+        function createGlobe() {
+          const loader = new THREE.TextureLoader();
+          loader.crossOrigin = "anonymous";
+          globe = new THREE.Mesh(
+            new THREE.SphereGeometry(1, 64, 64),
+            new THREE.MeshPhongMaterial({
+              color: 0x1a4a7c,
+              emissive: 0x001a33,
+              specular: 0x222244,
+              shininess: 15,
+            }),
+          );
+          globeGroup.add(globe);
+          loader.load(
+            "https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg",
+            function (t) {
+              globe.material.map = t;
+              globe.material.needsUpdate = true;
+            },
+            undefined,
+            function () {},
+          );
+          globeGroup.add(
+            new THREE.Mesh(
+              new THREE.SphereGeometry(1.01, 32, 32),
+              new THREE.MeshBasicMaterial({
+                color: 0xc5a059,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.12,
+              }),
+            ),
+          );
+          const gridMat = new THREE.LineBasicMaterial({
+            color: 0xc5a059,
+            transparent: true,
+            opacity: 0.15,
+          });
+          for (let lat = -60; lat <= 60; lat += 30) {
+            const phi = ((90 - lat) * Math.PI) / 180,
+              pts = [];
+            for (let lon = 0; lon <= 360; lon += 5) {
+              const th = ((lon + 180) * Math.PI) / 180;
+              pts.push(
+                new THREE.Vector3(
+                  -(1.015 * Math.sin(phi) * Math.cos(th)),
+                  1.015 * Math.cos(phi),
+                  1.015 * Math.sin(phi) * Math.sin(th),
+                ),
+              );
+            }
+            globeGroup.add(
+              new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints(pts),
+                gridMat,
+              ),
+            );
+          }
+          globeGroup.add(
+            new THREE.Mesh(
+              new THREE.SphereGeometry(1.15, 32, 32),
+              new THREE.MeshPhongMaterial({
+                color: 0x4ade80,
+                transparent: true,
+                opacity: 0.08,
+                side: THREE.BackSide,
+              }),
+            ),
+          );
+        }
+        function createMarker(lat, lon, city, status) {
+          const phi = ((90 - lat) * Math.PI) / 180,
+            th = ((lon + 180) * Math.PI) / 180,
+            r = 1.05;
+          const g = new THREE.Group();
+          g.position.set(
+            -(r * Math.sin(phi) * Math.cos(th)),
+            r * Math.cos(phi),
+            r * Math.sin(phi) * Math.sin(th),
+          );
+          g.lookAt(0, 0, 0);
+          const color =
+            status === "current"
+              ? 0xffbf00
+              : status === "visited"
+                ? 0x4ade80
+                : status === "target"
+                  ? 0xef4444
+                  : 0xc5a059;
+          g.add(
+            new THREE.Mesh(
+              new THREE.RingGeometry(0.02, 0.04, 32),
+              new THREE.MeshBasicMaterial({
+                color: color,
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.8,
+              }),
+            ),
+          );
+          g.add(
+            new THREE.Mesh(
+              new THREE.SphereGeometry(0.015, 16, 16),
+              new THREE.MeshBasicMaterial({ color: color }),
+            ),
+          );
+          if (status !== "visited") {
+            const ring = new THREE.Mesh(
+              new THREE.RingGeometry(0.04, 0.06, 32),
+              new THREE.MeshBasicMaterial({
+                color: color,
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.3,
+              }),
+            );
+            ring.userData.isPulsing = true;
+            g.add(ring);
+          }
+          globeGroup.add(g);
+          markers.push({ mesh: g, city: city, status: status });
+        }
+        function placeCityMarkers() {
+          (caseData.cities || []).forEach(function (city) {
+            if (city.revealed === false) return;
+            const c = cityCoords[city.name];
+            if (!c) return;
+            createMarker(
+              c.lat,
+              c.lon,
+              city,
+              city.current ? "current" : city.visited ? "visited" : "next",
+            );
+          });
+          const cur = (caseData.cities || []).find((c) => c.current);
+          if (cur)
+            setTimeout(function () {
+              selectCity(cur);
+              focusOnCity(cur);
+            }, 1600);
+        }
+        function showTargetOnGlobe(t) {
+          const c = cityCoords[t.city];
+          if (!c) return;
+          const phi = ((90 - c.lat) * Math.PI) / 180,
+            th = ((c.lon + 180) * Math.PI) / 180,
+            r = 1.08;
+          const g = new THREE.Group();
+          g.position.set(
+            -(r * Math.sin(phi) * Math.cos(th)),
+            r * Math.cos(phi),
+            r * Math.sin(phi) * Math.sin(th),
+          );
+          g.lookAt(0, 0, 0);
+          g.add(
+            new THREE.Mesh(
+              new THREE.RingGeometry(0.05, 0.08, 32),
+              new THREE.MeshBasicMaterial({
+                color: 0xef4444,
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.8,
+              }),
+            ),
+          );
+          g.add(
+            new THREE.Mesh(
+              new THREE.SphereGeometry(0.025, 16, 16),
+              new THREE.MeshBasicMaterial({ color: 0xef4444 }),
+            ),
+          );
+          globeGroup.add(g);
+          document.getElementById("targetSection").style.display = "block";
+          document.getElementById("op-target").textContent =
+            warrantData.targetName + " — " + t.city;
+          if (!(caseData.cities || []).find((x) => x.name === t.city)) {
+            caseData.cities.push({
+              name: t.city,
+              country: t.country,
+              visited: false,
+              current: false,
+              isTarget: true,
+              revealed: true,
+            });
+            persist();
+            renderRouteList();
+            createMarker(
+              c.lat,
+              c.lon,
+              { name: t.city, country: t.country, isTarget: true },
+              "target",
+            );
+          }
+        }
+        function setMouse(x, y) {
+          const r = renderer.domElement.getBoundingClientRect();
+          mouse.x = ((x - r.left) / r.width) * 2 - 1;
+          mouse.y = -((y - r.top) / r.height) * 2 + 1;
+        }
+        function findMarker(mesh) {
+          let cur = mesh;
+          while (cur) {
+            const f = markers.find((m) => m.mesh === cur);
+            if (f) return f;
+            cur = cur.parent;
+          }
+          return null;
+        }
+        function onMouseMove(e) {
+          if (mouseDownPos.x !== null) {
+            const dx = e.clientX - mouseDownPos.x,
+              dy = e.clientY - mouseDownPos.y;
+            if (Math.sqrt(dx * dx + dy * dy) > 5) isDragging = true;
+          }
+          setMouse(e.clientX, e.clientY);
+          raycaster.setFromCamera(mouse, camera);
+          const hit = raycaster.intersectObjects(
+            markers.map((m) => m.mesh),
+            true,
+          );
+          renderer.domElement.style.cursor = hit.length ? "pointer" : "grab";
+        }
+        function onMouseUp(e) {
+          if (!isDragging) {
+            setMouse(e.clientX, e.clientY);
+            raycaster.setFromCamera(mouse, camera);
+            const hit = raycaster.intersectObjects(
+              markers.map((m) => m.mesh),
+              true,
+            );
+            if (hit.length) {
+              const md = findMarker(hit[0].object);
+              if (md) {
+                audio("playClick");
+                selectCity(md.city);
+                focusOnCity(md.city);
+              }
+            }
+          }
+          mouseDownPos = { x: null, y: null };
+        }
+        function focusOnCity(city) {
+          const c = cityCoords[city.name];
+          if (!c) return;
+          const phi = ((90 - c.lat) * Math.PI) / 180,
+            th = ((c.lon + 180) * Math.PI) / 180;
+          const end = new THREE.Vector3(
+            -(2.5 * Math.sin(phi) * Math.cos(th)),
+            2.5 * Math.cos(phi),
+            2.5 * Math.sin(phi) * Math.sin(th),
+          );
+          const start = camera.position.clone();
+          const t0 = Date.now();
+          (function anim() {
+            const p = Math.min((Date.now() - t0) / 1000, 1);
+            const e = 1 - Math.pow(1 - p, 3);
+            camera.position.lerpVectors(start, end, e);
+            controls.update();
+            if (p < 1) requestAnimationFrame(anim);
+          })();
+        }
+        function onResize() {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        function animate() {
+          requestAnimationFrame(animate);
+          controls.update();
+          markers.forEach((m) => {
+            const ring = m.mesh.children[2];
+            if (ring && ring.userData.isPulsing) {
+              const s = 1 + Math.sin(Date.now() * 0.003) * 0.3;
+              ring.scale.set(s, s, s);
+            }
+          });
+          renderer.render(scene, camera);
+        }
+        function updateHeader() {
+          document.getElementById("caseName").textContent =
+            caseData.codename || "—";
+          const el = document.getElementById("op-timer");
+          const h = caseData.timeLimitHours || 0;
+          el.textContent = window.NexusTime.formatTimeLeft(h);
+          el.classList.toggle("critical", h <= 12);
+          document.getElementById("op-artifact").textContent =
+            caseData.artifact || "—";
+        }
+        function updateLocalTime() {
+          const cur = (caseData.cities || []).find((c) => c.current);
+          const tz = cur ? (cityCoords[cur.name] || {}).tz || "UTC-5" : "UTC-5";
+          const l = window.NexusTime.getLocalTime(tz);
+          const el = document.getElementById("op-local-time");
+          el.innerHTML =
+            getTimeIcon(l.isNight, l.isDawn, l.isDusk) +
+            " " +
+            l.formatted +
+            " • Dia " +
+            l.day;
+        }
+        function renderRouteList() {
+          const list = document.getElementById("route-list");
+          const cities = (caseData.cities || []).filter(
+            (c) => c.revealed !== false,
+          );
+          document.getElementById("route-count").textContent = cities.length;
+          list.innerHTML = "";
+          cities.forEach(function (city) {
+            const card = document.createElement("div");
+            card.className = "city-card";
+            if (city.visited) card.classList.add("visited");
+            if (city.current) card.classList.add("active");
+            if (city.isTarget && !city.visited) card.classList.add("target");
+            let st = "",
+              sc = "";
+            if (city.current) {
+              st = "ATUAL";
+              sc = "current";
+            } else if (city.visited) {
+              st = "INVESTIGADA";
+              sc = "visited";
+            } else if (city.isTarget) {
+              st = "ALVO";
+              sc = "target";
+            } else {
+              st = "PRÓXIMA";
+              sc = "next";
+            }
+            const c = cityCoords[city.name];
+            let timeStr = "";
+            if (c) {
+              const l = window.NexusTime.getLocalTime(c.tz);
+              timeStr =
+                '<div class="city-time">' +
+                getTimeIcon(l.isNight, l.isDawn, l.isDusk) +
+                " " +
+                l.formatted +
+                "</div>";
+            }
+            card.innerHTML =
+              '<div class="city-name">' +
+              city.name +
+              '</div><div class="city-country">' +
+              (city.country || "—") +
+              "</div>" +
+              timeStr +
+              '<div class="city-status ' +
+              sc +
+              '">' +
+              st +
+              "</div>";
+            card.addEventListener("click", function () {
+              if (isTraveling) return;
+              audio("playClick");
+              selectCity(city);
+              focusOnCity(city);
+            });
+            list.appendChild(card);
+          });
+        }
+        function selectCity(city) {
+          if (isTraveling) return;
+          selectedCity = city;
+          const c = cityCoords[city.name] || { country: "—", tz: "—" };
+          document.getElementById("op-status").textContent =
+            "Cidade Selecionada";
+          document.getElementById("cityHeading").textContent = city.name;
+          document.getElementById("citySub").textContent =
+            "Operação " + caseData.codename;
+          document.getElementById("cityCountry").textContent =
+            c.country || city.country || "—";
+          document.getElementById("cityTimezone").textContent = c.tz || "—";
+          document.getElementById("cityStatus").textContent = city.current
+            ? "Operação em andamento"
+            : city.visited
+              ? "Investigação concluída"
+              : city.isTarget
+                ? "⚠ Alvo rastreado"
+                : "Aguardando deslocamento";
+          document.getElementById("city-details").classList.add("visible");
+          const btn = document.getElementById("actionBtn");
+          if (city.current) {
+            btn.disabled = false;
+            btn.innerHTML =
+              '<i class="fas fa-search-location"></i> Investigar Agora';
+            btn.onclick = function () {
+              window.location.href = "04-cidade.html";
+            };
+          } else if (city.visited) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-check"></i> Já Investigada';
+            btn.onclick = null;
+          } else {
+            btn.disabled = false;
+            btn.innerHTML =
+              '<i class="fas fa-plane"></i> Viajar para ' + city.name;
+            btn.onclick = function () {
+              openTravelModal(city);
+            };
+          }
+        }
+        function openTravelModal(dest) {
+          const cur = (caseData.cities || []).find((c) => c.current);
+          if (!cur) return;
+          if (
+            !dest.isTarget &&
+            !hasCluesPointingToCity(dest.name) &&
+            !confirm(
+              "⚠ Nenhuma pista aponta para " + dest.name + ". Prosseguir?",
+            )
+          )
+            return;
+          document.getElementById("travelTitle").textContent =
+            cur.name + " → " + dest.name;
+          const opts = getTravelOptions(cur.name, dest.name);
+          const box = document.getElementById("transportOptions");
+          box.innerHTML = "";
+          opts.forEach(function (o, i) {
+            const d = document.createElement("div");
+            d.className = "transport-option" + (i === 0 ? " recommended" : "");
+            d.innerHTML =
+              '<div class="transport-icon">' +
+              o.icon +
+              '</div><div class="transport-name">' +
+              o.name +
+              '</div><div class="transport-desc">' +
+              o.desc +
+              '</div><div class="transport-stats"><div class="stat"><span class="label">Tempo:</span><span class="value">' +
+              o.time +
+              'h</span></div><div class="stat"><span class="label">Risco:</span><span class="value">' +
+              o.risk.toUpperCase() +
+              "</span></div></div>";
+            d.addEventListener("click", function () {
+              audio("playClick");
+              closeTravel();
+              startTravel(cur, dest, o);
+            });
+            box.appendChild(d);
+          });
+          document.getElementById("travelModal").classList.add("active");
+        }
+        function closeTravel() {
+          document.getElementById("travelModal").classList.remove("active");
+        }
 
-/* ✅ startTravel evoluída com animação de voo completa */
-function startTravel(from,to,opt){
-  isTraveling=true;controls.autoRotate=false;
-  const fc=cityCoords[from.name],tc=cityCoords[to.name];if(!fc||!tc){isTraveling=false;return;}
-  document.getElementById('travelOverlayTitle').textContent=opt.type==='car'?'Viajando por Terra':'Em Vôo';
-  document.getElementById('travelOverlayDesc').textContent=from.name+' → '+to.name;
-  document.getElementById('travelOverlay').classList.add('active');
-  audio('playWhoosh');
-  const isCar=opt.type==='car';
-  const route=calculateRoute(fc,tc,isCar);
-  const line=createRouteLine(route,isCar);globeGroup.add(line);
-  const plane=createPlaneIcon(isCar);globeGroup.add(plane);
-  plane.position.copy(route[0]);
-  const dur=Math.max(opt.time*1000,2500);const t0=Date.now();
-  (function anim(){
-    const p=Math.min((Date.now()-t0)/dur,1);
-    const idx=Math.min(Math.floor(p*(route.length-1)),route.length-2);
-    const local=p*(route.length-1)-idx;
-    plane.position.lerpVectors(route[idx],route[idx+1],local);
-    const camTarget=plane.position.clone().normalize().multiplyScalar(2.6);
-    camera.position.lerp(camTarget,0.06);
-    camera.lookAt(0,0,0);
-    document.getElementById('travelTimer').textContent=(Math.max(0,opt.time*(1-p))).toFixed(1)+'h restantes';
-    document.getElementById('travelProgressFill').style.width=(p*100)+'%';
-    if(p<1){requestAnimationFrame(anim);}
-    else{globeGroup.remove(line);globeGroup.remove(plane);finishTravel(from,to,opt,fc,tc);}
-  })();
-}
-function finishTravel(from,to,opt,fc,tc){
-  const res=window.NexusTime.consumeTime(opt.time,tc.tz);
-  if(res&&res.success){caseData.timeLimitHours=res.timeLeft;if(res.day)caseData.timeState.currentDay=res.day;}
-  from.current=false;from.visited=true;to.current=true;if(to.isTarget)to.isTarget=false;
-  persist();
-  document.getElementById('travelOverlay').classList.remove('active');
-  isTraveling=false;
-  markers=[];globeGroup.children.slice().forEach(function(ch){if(ch!==globe)globeGroup.remove(ch);});
-  placeCityMarkers();renderRouteList();updateHeader();updateLocalTime();
-  if(res&&res.exhausted){failByTimeout();return;}
-  const sleep=window.NexusTime.calculateSleep(fc.tz,tc.tz,opt.time);
-  const isTarget=warrantData&&warrantData.correct&&warrantData.targetLocation&&warrantData.targetLocation.city===to.name;
-  const empty=!isTarget&&!hasCluesPointingToCity(to.name);
-  if(sleep.sleepNeeded>0)applySleep(to,sleep,empty);
-  else{showToast('✓ Chegou em '+to.name+' (-'+opt.time+'h)','success');audio('playSuccess');setTimeout(function(){window.location.href=empty?'04-cidade.html?empty=1':'04-cidade.html';},1200);}
-}
-function applySleep(city,sleep,empty){
-  document.getElementById('sleepTitle').textContent='Descansando em '+city.name;
-  document.getElementById('sleepReason').textContent=sleep.reason;
-  document.getElementById('sleepOverlay').classList.add('active');
-  const dur=Math.max(sleep.sleepNeeded*800,2000);const t0=Date.now();
-  (function anim(){
-    const p=Math.min((Date.now()-t0)/dur,1);
-    document.getElementById('sleepTimer').textContent=(sleep.sleepNeeded*(1-p)).toFixed(1)+'h';
-    if(p<1)requestAnimationFrame(anim);
-    else{
-      const r=window.NexusTime.consumeTime(sleep.sleepNeeded,(cityCoords[city.name]||{}).tz);
-      if(r&&r.success){caseData.timeLimitHours=r.timeLeft;if(r.day)caseData.timeState.currentDay=r.day;}
-      persist();document.getElementById('sleepOverlay').classList.remove('active');updateHeader();updateLocalTime();
-      if(r&&r.exhausted){failByTimeout();return;}
-      showToast('☀️ Acordou em '+city.name,'success');
-      setTimeout(function(){window.location.href=empty?'04-cidade.html?empty=1':'04-cidade.html';},1200);
-    }
-  })();
-}
-function failByTimeout(){
-  Career.fail(caseData);
-  showToast('⏰ PRAZO ESGOTADO — O suspeito ESCAPOU!','error');audio('playError');
-  setTimeout(function(){try{localStorage.removeItem(CASE_KEY);localStorage.removeItem(WARRANT_KEY);}catch(e){}window.location.href='02-hq.html';},2800);
-}
-document.getElementById('cancelBtn').addEventListener('click',function(){audio('playClick');document.getElementById('city-details').classList.remove('visible');selectedCity=null;});
-document.getElementById('btnCancelTravel').addEventListener('click',closeTravel);
-document.getElementById('travelModal').addEventListener('click',function(e){if(e.target.id==='travelModal')closeTravel();});
+        /* ✅ startTravel evoluída com animação de voo completa */
+        function startTravel(from, to, opt) {
+          isTraveling = true;
+          controls.autoRotate = false;
+          const fc = cityCoords[from.name],
+            tc = cityCoords[to.name];
+          if (!fc || !tc) {
+            isTraveling = false;
+            return;
+          }
+          document.getElementById("travelOverlayTitle").textContent =
+            opt.type === "car" ? "Viajando por Terra" : "Em Vôo";
+          document.getElementById("travelOverlayDesc").textContent =
+            from.name + " → " + to.name;
+          document.getElementById("travelOverlay").classList.add("active");
+          audio("playWhoosh");
+          const isCar = opt.type === "car";
+          const route = calculateRoute(fc, tc, isCar);
+          const line = createRouteLine(route, isCar);
+          globeGroup.add(line);
+          const plane = createPlaneIcon(isCar);
+          globeGroup.add(plane);
+          plane.position.copy(route[0]);
+          const dur = Math.max(opt.time * 1000, 2500);
+          const t0 = Date.now();
+          (function anim() {
+            const p = Math.min((Date.now() - t0) / dur, 1);
+            const idx = Math.min(
+              Math.floor(p * (route.length - 1)),
+              route.length - 2,
+            );
+            const local = p * (route.length - 1) - idx;
+            plane.position.lerpVectors(route[idx], route[idx + 1], local);
+            const camTarget = plane.position
+              .clone()
+              .normalize()
+              .multiplyScalar(2.6);
+            camera.position.lerp(camTarget, 0.06);
+            camera.lookAt(0, 0, 0);
+            document.getElementById("travelTimer").textContent =
+              Math.max(0, opt.time * (1 - p)).toFixed(1) + "h restantes";
+            document.getElementById("travelProgressFill").style.width =
+              p * 100 + "%";
+            if (p < 1) {
+              requestAnimationFrame(anim);
+            } else {
+              globeGroup.remove(line);
+              globeGroup.remove(plane);
+              finishTravel(from, to, opt, fc, tc);
+            }
+          })();
+        }
+        function finishTravel(from, to, opt, fc, tc) {
+          const res = window.NexusTime.consumeTime(opt.time, tc.tz);
+          if (res && res.success) {
+            caseData.timeLimitHours = res.timeLeft;
+            if (res.day) caseData.timeState.currentDay = res.day;
+          }
+          from.current = false;
+          from.visited = true;
+          to.current = true;
+          if (to.isTarget) to.isTarget = false;
+          persist();
+          document.getElementById("travelOverlay").classList.remove("active");
+          isTraveling = false;
+          markers = [];
+          globeGroup.children.slice().forEach(function (ch) {
+            if (ch !== globe) globeGroup.remove(ch);
+          });
+          placeCityMarkers();
+          renderRouteList();
+          updateHeader();
+          updateLocalTime();
+          if (res && res.exhausted) {
+            failByTimeout();
+            return;
+          }
+          const sleep = window.NexusTime.calculateSleep(fc.tz, tc.tz, opt.time);
+          const isTarget =
+            warrantData &&
+            warrantData.correct &&
+            warrantData.targetLocation &&
+            warrantData.targetLocation.city === to.name;
+          const empty = !isTarget && !hasCluesPointingToCity(to.name);
+          if (sleep.sleepNeeded > 0) applySleep(to, sleep, empty);
+          else {
+            showToast(
+              "✓ Chegou em " + to.name + " (-" + opt.time + "h)",
+              "success",
+            );
+            audio("playSuccess");
+            setTimeout(function () {
+              window.location.href = empty
+                ? "04-cidade.html?empty=1"
+                : "04-cidade.html";
+            }, 1200);
+          }
+        }
+        function applySleep(city, sleep, empty) {
+          document.getElementById("sleepTitle").textContent =
+            "Descansando em " + city.name;
+          document.getElementById("sleepReason").textContent = sleep.reason;
+          document.getElementById("sleepOverlay").classList.add("active");
+          const dur = Math.max(sleep.sleepNeeded * 800, 2000);
+          const t0 = Date.now();
+          (function anim() {
+            const p = Math.min((Date.now() - t0) / dur, 1);
+            document.getElementById("sleepTimer").textContent =
+              (sleep.sleepNeeded * (1 - p)).toFixed(1) + "h";
+            if (p < 1) requestAnimationFrame(anim);
+            else {
+              const r = window.NexusTime.consumeTime(
+                sleep.sleepNeeded,
+                (cityCoords[city.name] || {}).tz,
+              );
+              if (r && r.success) {
+                caseData.timeLimitHours = r.timeLeft;
+                if (r.day) caseData.timeState.currentDay = r.day;
+              }
+              persist();
+              document
+                .getElementById("sleepOverlay")
+                .classList.remove("active");
+              updateHeader();
+              updateLocalTime();
+              if (r && r.exhausted) {
+                failByTimeout();
+                return;
+              }
+              showToast("☀️ Acordou em " + city.name, "success");
+              setTimeout(function () {
+                window.location.href = empty
+                  ? "04-cidade.html?empty=1"
+                  : "04-cidade.html";
+              }, 1200);
+            }
+          })();
+        }
+        function failByTimeout() {
+          Career.fail(caseData);
+          showToast("⏰ PRAZO ESGOTADO — O suspeito ESCAPOU!", "error");
+          audio("playError");
+          setTimeout(function () {
+            try {
+              localStorage.removeItem(CASE_KEY);
+              localStorage.removeItem(WARRANT_KEY);
+            } catch (e) {}
+            window.location.href = "02-hq.html";
+          }, 2800);
+        }
+        document
+          .getElementById("cancelBtn")
+          .addEventListener("click", function () {
+            audio("playClick");
+            document.getElementById("city-details").classList.remove("visible");
+            selectedCity = null;
+          });
+        document
+          .getElementById("btnCancelTravel")
+          .addEventListener("click", closeTravel);
+        document
+          .getElementById("travelModal")
+          .addEventListener("click", function (e) {
+            if (e.target.id === "travelModal") closeTravel();
+          });
 
-try{init();}catch(err){console.error('[GLOBO] erro:',err);}
-setTimeout(function(){document.getElementById('loading').classList.add('hidden');},2000);
-console.log('[GLOBO] v6.0 — animação de voo + órbita própria');
-})();
-</script>
-</body>
+        try {
+          init();
+        } catch (err) {
+          console.error("[GLOBO] erro:", err);
+        }
+        setTimeout(function () {
+          document.getElementById("loading").classList.add("hidden");
+        }, 2000);
+        console.log("[GLOBO] v6.0 — animação de voo + órbita própria");
+      })();
+    </script>
+  </body>
 </html>
