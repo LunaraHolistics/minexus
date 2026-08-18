@@ -1,227 +1,1097 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Captura — PROJETO M:I</title>
-<link rel="icon" type="image/png" href="../favicon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<style>
-:root{--surface:#0a0d12;--on:#e5e2e1;--onv:#c1c7cc;--gold:#C5A059;--goldl:#e9c176;--bronze:#CD7F32;--amber:#FFBF00;--petrol:#003344;--ivory:#F5F5DC;--red:#ef4444;--green:#4ade80;--neon-blue:#4fc3f7;--neon-pink:#f06292;}
-*{margin:0;padding:0;box-sizing:border-box;}
-html,body{width:100%;height:100%;overflow:hidden;background:var(--surface);font-family:'Manrope',sans-serif;color:var(--on);}
-.city-bg{position:fixed;inset:0;z-index:1;background:radial-gradient(ellipse at 20% 30%,rgba(79,195,247,.12) 0%,transparent 50%),radial-gradient(ellipse at 80% 70%,rgba(240,98,146,.1) 0%,transparent 50%),linear-gradient(180deg,#0a0d12 0%,#0e1220 40%,#151a28 70%,#0a0d12 100%);}
-.rain{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.35;background:repeating-linear-gradient(75deg,transparent 0,transparent 3px,rgba(180,200,220,.12) 3px,rgba(180,200,220,.12) 4px);animation:rain-fall .6s linear infinite;}
-@keyframes rain-fall{from{background-position:0 0;}to{background-position:-40px 80px;}}
-.skyline{position:fixed;bottom:0;left:0;right:0;height:50%;z-index:3;display:flex;align-items:flex-end;gap:3px;padding:0 10px;pointer-events:none;}
-.tower{flex:1;position:relative;background:linear-gradient(180deg,#12161f,#05070a);border-top:2px solid rgba(79,195,247,.4);}
-.tower::before{content:'';position:absolute;inset:6px;background:repeating-linear-gradient(0deg,transparent 0,transparent 8px,rgba(79,195,247,.18) 8px,rgba(79,195,247,.18) 10px,transparent 10px,transparent 18px,rgba(240,98,146,.15) 18px,rgba(240,98,146,.15) 20px);}
-.film-grain{position:fixed;inset:0;z-index:4;pointer-events:none;opacity:.08;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");mix-blend-mode:overlay;}
-.scanlines{position:fixed;inset:0;z-index:5;pointer-events:none;opacity:.15;background:repeating-linear-gradient(0deg,rgba(0,0,0,.3) 0,rgba(0,0,0,.3) 1px,transparent 1px,transparent 3px);}
-.vignette{position:fixed;inset:0;z-index:6;pointer-events:none;box-shadow:inset 0 0 180px rgba(0,0,0,.85);}
-.ui{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;pointer-events:none;}
-.ui>*{pointer-events:auto;}
-.op-header{display:flex;justify-content:space-between;align-items:center;padding:20px 32px;gap:20px;flex-wrap:wrap;background:linear-gradient(180deg,rgba(10,13,18,.95) 0%,rgba(10,13,18,.6) 70%,transparent 100%);}
-.op-title{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:.25em;text-transform:uppercase;display:flex;align-items:center;gap:12px;}
-.op-title i{color:var(--amber);}
-.op-meta{display:flex;gap:12px;flex-wrap:wrap;}
-.meta-chip{padding:6px 14px;border:.5px solid var(--gold);background:rgba(0,51,68,.3);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);}
-.meta-chip.location{color:var(--neon-blue);border-color:var(--neon-blue);}
-.meta-chip.timer{color:var(--amber);}
-.op-main{flex:1;display:flex;align-items:center;justify-content:center;padding:20px;pointer-events:none;overflow-y:auto;}
-.op-panel{max-width:760px;width:100%;pointer-events:auto;background:rgba(10,13,18,.85);backdrop-filter:blur(16px);border:1px solid var(--gold);padding:32px;box-shadow:0 30px 80px rgba(0,0,0,.7),0 0 0 1px rgba(197,160,89,.2);}
-.phase-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:.3em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
-.phase-title::before{content:'//';color:var(--bronze);}
-.phase-heading{font-family:'Libre Caslon Text',serif;font-size:28px;font-weight:700;color:var(--goldl);margin-bottom:20px;}
-.intel-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:28px;}
-.intel-item{background:rgba(0,51,68,.3);border-left:2px solid var(--gold);padding:12px 14px;}
-.intel-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--bronze);letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px;}
-.intel-value{font-family:'Manrope',sans-serif;font-size:14px;color:var(--ivory);font-weight:600;line-height:1.4;}
-.tactics-grid{display:flex;flex-direction:column;gap:12px;}
-.tactic-card{background:rgba(10,13,18,.6);border:1px solid rgba(197,160,89,.3);padding:18px 20px;cursor:pointer;transition:all .3s;display:flex;gap:16px;align-items:flex-start;}
-.tactic-card:hover{border-color:var(--gold);background:rgba(0,51,68,.5);transform:translateX(4px);}
-.tactic-card:hover .tactic-icon{background:var(--gold);color:var(--surface);}
-.tactic-icon{width:44px;height:44px;flex-shrink:0;background:rgba(197,160,89,.1);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--gold);transition:all .3s;}
-.tactic-info{flex:1;}
-.tactic-name{font-family:'Libre Caslon Text',serif;font-size:17px;font-weight:700;color:var(--goldl);margin-bottom:4px;}
-.tactic-desc{font-family:'Manrope',sans-serif;font-size:12px;color:var(--onv);line-height:1.5;margin-bottom:8px;}
-.tactic-risk{display:inline-block;padding:2px 10px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;}
-.tactic-risk.low{background:rgba(74,222,128,.15);color:var(--green);}
-.tactic-risk.med{background:rgba(255,191,0,.15);color:var(--amber);}
-.tactic-risk.high{background:rgba(239,68,68,.15);color:#fca5a5;}
-.radio-log{background:#000;border:1px solid rgba(79,195,247,.3);padding:20px;min-height:240px;max-height:300px;overflow-y:auto;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.9;}
-.radio-log::-webkit-scrollbar{width:6px;}.radio-log::-webkit-scrollbar-thumb{background:var(--neon-blue);border-radius:3px;}
-.log-line{opacity:0;animation:log-in .4s forwards;}
-@keyframes log-in{to{opacity:1;}}
-.log-line .time{color:#555;margin-right:10px;}
-.log-line .unit{color:var(--neon-blue);}
-.log-line .msg{color:#c8e6c9;}
-.log-line.alert .msg{color:var(--amber);}
-.log-line.success .msg{color:var(--green);font-weight:700;}
-.progress-track{margin-top:16px;height:4px;background:rgba(79,195,247,.15);overflow:hidden;}
-.progress-fill{height:100%;width:0;background:var(--neon-blue);transition:width .5s;box-shadow:0 0 10px var(--neon-blue);}
-.decision-panel{margin-top:16px;border:1px solid var(--amber);background:rgba(255,191,0,.06);padding:18px;}
-.decision-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
-.decision-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--amber);letter-spacing:.25em;text-transform:uppercase;}
-.decision-timer{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--amber);}
-.decision-timer.urgent{color:var(--red);animation:pulse-red .5s infinite;}
-@keyframes pulse-red{0%,100%{opacity:1;}50%{opacity:.5;}}
-.decision-text{font-family:'Libre Caslon Text',serif;font-style:italic;font-size:15px;color:var(--ivory);line-height:1.6;margin-bottom:14px;}
-.decision-options{display:flex;flex-direction:column;gap:8px;}
-.decision-opt{padding:12px 16px;background:rgba(10,13,18,.7);border:1px solid rgba(197,160,89,.3);color:var(--on);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;cursor:pointer;transition:all .2s;text-align:left;}
-.decision-opt:hover{border-color:var(--amber);background:rgba(255,191,0,.12);transform:translateX(4px);}
-.dossier{background:var(--ivory);color:#1a1a1a;padding:28px;border:1px solid var(--bronze);position:relative;box-shadow:0 20px 50px rgba(0,0,0,.5);}
-.dossier::before{content:'CONFIDENCIAL';position:absolute;top:12px;right:12px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--bronze);letter-spacing:.2em;border:1px solid var(--bronze);padding:4px 10px;transform:rotate(3deg);opacity:.6;}
-.dossier-header{display:flex;gap:20px;align-items:center;margin-bottom:20px;padding-bottom:20px;border-bottom:2px solid rgba(205,127,50,.3);}
-.mugshot{width:110px;height:110px;background:var(--petrol);border:2px solid var(--bronze);display:flex;align-items:center;justify-content:center;font-family:'Libre Caslon Text',serif;font-size:40px;color:var(--gold);flex-shrink:0;overflow:hidden;}
-.mugshot img{width:100%;height:100%;object-fit:cover;object-position:top;}
-.dossier-name{font-family:'Libre Caslon Text',serif;font-size:26px;font-weight:700;color:#1a1a1a;}
-.dossier-alias{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--bronze);letter-spacing:.15em;text-transform:uppercase;margin-top:4px;}
-.dossier-quote{font-family:'Libre Caslon Text',serif;font-style:italic;font-size:14px;color:#444;margin-top:8px;}
-.dossier-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;}
-.field-row{font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.6;}
-.field-row .label{color:#888;letter-spacing:.1em;text-transform:uppercase;font-size:9px;}
-.field-row .value{color:#1a1a1a;font-weight:600;}
-.stamp{position:absolute;bottom:20px;right:20px;font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;border:3px solid currentColor;padding:8px 18px;transform:rotate(-12deg);opacity:0;animation:stamp-in .5s .3s forwards;}
-.stamp.captured{color:var(--green);}
-@keyframes stamp-in{0%{opacity:0;transform:rotate(-12deg) scale(2);}100%{opacity:.85;transform:rotate(-12deg) scale(1);}}
-.rating-box{margin-top:20px;padding:16px 20px;background:rgba(0,51,68,.4);border:1px solid var(--gold);display:flex;align-items:center;gap:20px;}
-.rating-letter{font-family:'Libre Caslon Text',serif;font-size:44px;font-weight:700;color:var(--amber);text-shadow:0 0 20px rgba(255,191,0,.5);min-width:60px;text-align:center;}
-.rating-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--bronze);letter-spacing:.2em;text-transform:uppercase;margin-bottom:4px;}
-.rating-desc{font-family:'Manrope',sans-serif;font-size:13px;color:var(--on);}
-.rating-caption{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--onv);margin-top:6px;font-style:italic;}
-.artifact-reveal{margin-top:24px;padding:20px;background:rgba(197,160,89,.12);border:1px solid var(--gold);text-align:center;}
-.artifact-img{width:120px;height:120px;object-fit:cover;border-radius:4px;border:1px solid var(--gold);margin:0 auto 12px;display:block;filter:drop-shadow(0 8px 20px rgba(0,0,0,.8));}
-.artifact-icon{font-size:48px;margin-bottom:12px;animation:float 3s ease-in-out infinite;}
-@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
-.artifact-name{font-family:'Libre Caslon Text',serif;font-size:20px;font-weight:700;color:var(--goldl);margin-bottom:4px;}
-.artifact-status{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);letter-spacing:.2em;text-transform:uppercase;}
-.op-footer{padding:16px 32px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;background:linear-gradient(0deg,rgba(10,13,18,.95) 0%,rgba(10,13,18,.6) 70%,transparent 100%);}
-.op-btn{padding:14px 24px;background:rgba(0,51,68,.4);border:1px solid var(--gold);color:var(--goldl);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .3s;display:flex;align-items:center;gap:10px;text-decoration:none;}
-.op-btn:hover{background:var(--gold);color:var(--surface);}
-.op-btn.primary{background:var(--gold);color:var(--surface);font-weight:700;}
-.op-btn.primary:hover{background:var(--amber);box-shadow:0 0 30px rgba(255,191,0,.5);}
-.op-btn:disabled{opacity:.3;cursor:not-allowed;pointer-events:none;}
-.flash{position:fixed;inset:0;z-index:100;background:#fff;opacity:0;pointer-events:none;}
-.flash.active{animation:flash-bang .4s ease-out;}
-@keyframes flash-bang{0%{opacity:0;}20%{opacity:.9;}100%{opacity:0;}}
-.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--petrol);border:1px solid var(--gold);padding:14px 24px;z-index:150;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--goldl);letter-spacing:.1em;opacity:0;transition:all .3s;pointer-events:none;}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-.toast.error{border-color:var(--red);color:#fecaca;}
-@media (max-width:768px){.op-panel{padding:20px;}.phase-heading{font-size:22px;}.intel-grid{grid-template-columns:1fr;}.op-header,.op-footer{padding:16px 20px;}}
-</style>
-</head>
-<body>
-<div class="city-bg"></div><div class="skyline" id="skyline"></div><div class="rain"></div>
-<div class="film-grain"></div><div class="scanlines"></div><div class="vignette"></div>
-<div class="flash" id="flash"></div>
-<div class="ui">
-  <div class="op-header">
-    <div class="op-title"><i class="fas fa-crosshairs"></i> OPERAÇÃO DE CAPTURA — FASE FINAL</div>
-    <div class="op-meta">
-      <div class="meta-chip location"><i class="fas fa-map-marker-alt"></i> <span id="locText">—</span></div>
-      <div class="meta-chip timer"><i class="fas fa-clock"></i> <span id="timerText">--</span></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Captura — PROJETO M:I</title>
+    <link rel="icon" type="image/png" href="../favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Manrope:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <style>
+      :root {
+        --surface: #0a0d12;
+        --on: #e5e2e1;
+        --onv: #c1c7cc;
+        --gold: #c5a059;
+        --goldl: #e9c176;
+        --bronze: #cd7f32;
+        --amber: #ffbf00;
+        --petrol: #003344;
+        --ivory: #f5f5dc;
+        --red: #ef4444;
+        --green: #4ade80;
+        --neon-blue: #4fc3f7;
+        --neon-pink: #f06292;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--surface);
+        font-family: "Manrope", sans-serif;
+        color: var(--on);
+      }
+      .city-bg {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        background:
+          radial-gradient(
+            ellipse at 20% 30%,
+            rgba(79, 195, 247, 0.12) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            ellipse at 80% 70%,
+            rgba(240, 98, 146, 0.1) 0%,
+            transparent 50%
+          ),
+          linear-gradient(
+            180deg,
+            #0a0d12 0%,
+            #0e1220 40%,
+            #151a28 70%,
+            #0a0d12 100%
+          );
+      }
+      .rain {
+        position: fixed;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+        opacity: 0.35;
+        background: repeating-linear-gradient(
+          75deg,
+          transparent 0,
+          transparent 3px,
+          rgba(180, 200, 220, 0.12) 3px,
+          rgba(180, 200, 220, 0.12) 4px
+        );
+        animation: rain-fall 0.6s linear infinite;
+      }
+      @keyframes rain-fall {
+        from {
+          background-position: 0 0;
+        }
+        to {
+          background-position: -40px 80px;
+        }
+      }
+      .skyline {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 50%;
+        z-index: 3;
+        display: flex;
+        align-items: flex-end;
+        gap: 3px;
+        padding: 0 10px;
+        pointer-events: none;
+      }
+      .tower {
+        flex: 1;
+        position: relative;
+        background: linear-gradient(180deg, #12161f, #05070a);
+        border-top: 2px solid rgba(79, 195, 247, 0.4);
+      }
+      .tower::before {
+        content: "";
+        position: absolute;
+        inset: 6px;
+        background: repeating-linear-gradient(
+          0deg,
+          transparent 0,
+          transparent 8px,
+          rgba(79, 195, 247, 0.18) 8px,
+          rgba(79, 195, 247, 0.18) 10px,
+          transparent 10px,
+          transparent 18px,
+          rgba(240, 98, 146, 0.15) 18px,
+          rgba(240, 98, 146, 0.15) 20px
+        );
+      }
+      .film-grain {
+        position: fixed;
+        inset: 0;
+        z-index: 4;
+        pointer-events: none;
+        opacity: 0.08;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+        mix-blend-mode: overlay;
+      }
+      .scanlines {
+        position: fixed;
+        inset: 0;
+        z-index: 5;
+        pointer-events: none;
+        opacity: 0.15;
+        background: repeating-linear-gradient(
+          0deg,
+          rgba(0, 0, 0, 0.3) 0,
+          rgba(0, 0, 0, 0.3) 1px,
+          transparent 1px,
+          transparent 3px
+        );
+      }
+      .vignette {
+        position: fixed;
+        inset: 0;
+        z-index: 6;
+        pointer-events: none;
+        box-shadow: inset 0 0 180px rgba(0, 0, 0, 0.85);
+      }
+      .ui {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        pointer-events: none;
+      }
+      .ui > * {
+        pointer-events: auto;
+      }
+      .op-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 32px;
+        gap: 20px;
+        flex-wrap: wrap;
+        background: linear-gradient(
+          180deg,
+          rgba(10, 13, 18, 0.95) 0%,
+          rgba(10, 13, 18, 0.6) 70%,
+          transparent 100%
+        );
+      }
+      .op-title {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--gold);
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .op-title i {
+        color: var(--amber);
+      }
+      .op-meta {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .meta-chip {
+        padding: 6px 14px;
+        border: 0.5px solid var(--gold);
+        background: rgba(0, 51, 68, 0.3);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--gold);
+      }
+      .meta-chip.location {
+        color: var(--neon-blue);
+        border-color: var(--neon-blue);
+      }
+      .meta-chip.timer {
+        color: var(--amber);
+      }
+      .op-main {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        pointer-events: none;
+        overflow-y: auto;
+      }
+      .op-panel {
+        max-width: 760px;
+        width: 100%;
+        pointer-events: auto;
+        background: rgba(10, 13, 18, 0.85);
+        backdrop-filter: blur(16px);
+        border: 1px solid var(--gold);
+        padding: 32px;
+        box-shadow:
+          0 30px 80px rgba(0, 0, 0, 0.7),
+          0 0 0 1px rgba(197, 160, 89, 0.2);
+      }
+      .phase-title {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--gold);
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .phase-title::before {
+        content: "//";
+        color: var(--bronze);
+      }
+      .phase-heading {
+        font-family: "Libre Caslon Text", serif;
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--goldl);
+        margin-bottom: 20px;
+      }
+      .intel-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+        margin-bottom: 28px;
+      }
+      .intel-item {
+        background: rgba(0, 51, 68, 0.3);
+        border-left: 2px solid var(--gold);
+        padding: 12px 14px;
+      }
+      .intel-label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        color: var(--bronze);
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+      }
+      .intel-value {
+        font-family: "Manrope", sans-serif;
+        font-size: 14px;
+        color: var(--ivory);
+        font-weight: 600;
+        line-height: 1.4;
+      }
+      .tactics-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .tactic-card {
+        background: rgba(10, 13, 18, 0.6);
+        border: 1px solid rgba(197, 160, 89, 0.3);
+        padding: 18px 20px;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+      }
+      .tactic-card:hover {
+        border-color: var(--gold);
+        background: rgba(0, 51, 68, 0.5);
+        transform: translateX(4px);
+      }
+      .tactic-card:hover .tactic-icon {
+        background: var(--gold);
+        color: var(--surface);
+      }
+      .tactic-icon {
+        width: 44px;
+        height: 44px;
+        flex-shrink: 0;
+        background: rgba(197, 160, 89, 0.1);
+        border: 1px solid var(--gold);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: var(--gold);
+        transition: all 0.3s;
+      }
+      .tactic-info {
+        flex: 1;
+      }
+      .tactic-name {
+        font-family: "Libre Caslon Text", serif;
+        font-size: 17px;
+        font-weight: 700;
+        color: var(--goldl);
+        margin-bottom: 4px;
+      }
+      .tactic-desc {
+        font-family: "Manrope", sans-serif;
+        font-size: 12px;
+        color: var(--onv);
+        line-height: 1.5;
+        margin-bottom: 8px;
+      }
+      .tactic-risk {
+        display: inline-block;
+        padding: 2px 10px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+      }
+      .tactic-risk.low {
+        background: rgba(74, 222, 128, 0.15);
+        color: var(--green);
+      }
+      .tactic-risk.med {
+        background: rgba(255, 191, 0, 0.15);
+        color: var(--amber);
+      }
+      .tactic-risk.high {
+        background: rgba(239, 68, 68, 0.15);
+        color: #fca5a5;
+      }
+      .radio-log {
+        background: #000;
+        border: 1px solid rgba(79, 195, 247, 0.3);
+        padding: 20px;
+        min-height: 240px;
+        max-height: 300px;
+        overflow-y: auto;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        line-height: 1.9;
+      }
+      .radio-log::-webkit-scrollbar {
+        width: 6px;
+      }
+      .radio-log::-webkit-scrollbar-thumb {
+        background: var(--neon-blue);
+        border-radius: 3px;
+      }
+      .log-line {
+        opacity: 0;
+        animation: log-in 0.4s forwards;
+      }
+      @keyframes log-in {
+        to {
+          opacity: 1;
+        }
+      }
+      .log-line .time {
+        color: #555;
+        margin-right: 10px;
+      }
+      .log-line .unit {
+        color: var(--neon-blue);
+      }
+      .log-line .msg {
+        color: #c8e6c9;
+      }
+      .log-line.alert .msg {
+        color: var(--amber);
+      }
+      .log-line.success .msg {
+        color: var(--green);
+        font-weight: 700;
+      }
+      .progress-track {
+        margin-top: 16px;
+        height: 4px;
+        background: rgba(79, 195, 247, 0.15);
+        overflow: hidden;
+      }
+      .progress-fill {
+        height: 100%;
+        width: 0;
+        background: var(--neon-blue);
+        transition: width 0.5s;
+        box-shadow: 0 0 10px var(--neon-blue);
+      }
+      .decision-panel {
+        margin-top: 16px;
+        border: 1px solid var(--amber);
+        background: rgba(255, 191, 0, 0.06);
+        padding: 18px;
+      }
+      .decision-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .decision-label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--amber);
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+      }
+      .decision-timer {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--amber);
+      }
+      .decision-timer.urgent {
+        color: var(--red);
+        animation: pulse-red 0.5s infinite;
+      }
+      @keyframes pulse-red {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+      .decision-text {
+        font-family: "Libre Caslon Text", serif;
+        font-style: italic;
+        font-size: 15px;
+        color: var(--ivory);
+        line-height: 1.6;
+        margin-bottom: 14px;
+      }
+      .decision-options {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .decision-opt {
+        padding: 12px 16px;
+        background: rgba(10, 13, 18, 0.7);
+        border: 1px solid rgba(197, 160, 89, 0.3);
+        color: var(--on);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-align: left;
+      }
+      .decision-opt:hover {
+        border-color: var(--amber);
+        background: rgba(255, 191, 0, 0.12);
+        transform: translateX(4px);
+      }
+      .dossier {
+        background: var(--ivory);
+        color: #1a1a1a;
+        padding: 28px;
+        border: 1px solid var(--bronze);
+        position: relative;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      }
+      .dossier::before {
+        content: "CONFIDENCIAL";
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        color: var(--bronze);
+        letter-spacing: 0.2em;
+        border: 1px solid var(--bronze);
+        padding: 4px 10px;
+        transform: rotate(3deg);
+        opacity: 0.6;
+      }
+      .dossier-header {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid rgba(205, 127, 50, 0.3);
+      }
+      .mugshot {
+        width: 110px;
+        height: 110px;
+        background: var(--petrol);
+        border: 2px solid var(--bronze);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Libre Caslon Text", serif;
+        font-size: 40px;
+        color: var(--gold);
+        flex-shrink: 0;
+        overflow: hidden;
+      }
+      .mugshot img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: top;
+      }
+      .dossier-name {
+        font-family: "Libre Caslon Text", serif;
+        font-size: 26px;
+        font-weight: 700;
+        color: #1a1a1a;
+      }
+      .dossier-alias {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--bronze);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-top: 4px;
+      }
+      .dossier-quote {
+        font-family: "Libre Caslon Text", serif;
+        font-style: italic;
+        font-size: 14px;
+        color: #444;
+        margin-top: 8px;
+      }
+      .dossier-fields {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+      }
+      .field-row {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        line-height: 1.6;
+      }
+      .field-row .label {
+        color: #888;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        font-size: 9px;
+      }
+      .field-row .value {
+        color: #1a1a1a;
+        font-weight: 600;
+      }
+      .stamp {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        border: 3px solid currentColor;
+        padding: 8px 18px;
+        transform: rotate(-12deg);
+        opacity: 0;
+        animation: stamp-in 0.5s 0.3s forwards;
+      }
+      .stamp.captured {
+        color: var(--green);
+      }
+      @keyframes stamp-in {
+        0% {
+          opacity: 0;
+          transform: rotate(-12deg) scale(2);
+        }
+        100% {
+          opacity: 0.85;
+          transform: rotate(-12deg) scale(1);
+        }
+      }
+      .rating-box {
+        margin-top: 20px;
+        padding: 16px 20px;
+        background: rgba(0, 51, 68, 0.4);
+        border: 1px solid var(--gold);
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+      .rating-letter {
+        font-family: "Libre Caslon Text", serif;
+        font-size: 44px;
+        font-weight: 700;
+        color: var(--amber);
+        text-shadow: 0 0 20px rgba(255, 191, 0, 0.5);
+        min-width: 60px;
+        text-align: center;
+      }
+      .rating-label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        color: var(--bronze);
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
+      .rating-desc {
+        font-family: "Manrope", sans-serif;
+        font-size: 13px;
+        color: var(--on);
+      }
+      .rating-caption {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--onv);
+        margin-top: 6px;
+        font-style: italic;
+      }
+      .artifact-reveal {
+        margin-top: 24px;
+        padding: 20px;
+        background: rgba(197, 160, 89, 0.12);
+        border: 1px solid var(--gold);
+        text-align: center;
+      }
+      .artifact-img {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 4px;
+        border: 1px solid var(--gold);
+        margin: 0 auto 12px;
+        display: block;
+        filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.8));
+      }
+      .artifact-icon {
+        font-size: 48px;
+        margin-bottom: 12px;
+        animation: float 3s ease-in-out infinite;
+      }
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-8px);
+        }
+      }
+      .artifact-name {
+        font-family: "Libre Caslon Text", serif;
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--goldl);
+        margin-bottom: 4px;
+      }
+      .artifact-status {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--green);
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+      }
+      .op-footer {
+        padding: 16px 32px;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        background: linear-gradient(
+          0deg,
+          rgba(10, 13, 18, 0.95) 0%,
+          rgba(10, 13, 18, 0.6) 70%,
+          transparent 100%
+        );
+      }
+      .op-btn {
+        padding: 14px 24px;
+        background: rgba(0, 51, 68, 0.4);
+        border: 1px solid var(--gold);
+        color: var(--goldl);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+      }
+      .op-btn:hover {
+        background: var(--gold);
+        color: var(--surface);
+      }
+      .op-btn.primary {
+        background: var(--gold);
+        color: var(--surface);
+        font-weight: 700;
+      }
+      .op-btn.primary:hover {
+        background: var(--amber);
+        box-shadow: 0 0 30px rgba(255, 191, 0, 0.5);
+      }
+      .op-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        pointer-events: none;
+      }
+      .flash {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        background: #fff;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .flash.active {
+        animation: flash-bang 0.4s ease-out;
+      }
+      @keyframes flash-bang {
+        0% {
+          opacity: 0;
+        }
+        20% {
+          opacity: 0.9;
+        }
+        100% {
+          opacity: 0;
+        }
+      }
+      .toast {
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        background: var(--petrol);
+        border: 1px solid var(--gold);
+        padding: 14px 24px;
+        z-index: 150;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        color: var(--goldl);
+        letter-spacing: 0.1em;
+        opacity: 0;
+        transition: all 0.3s;
+        pointer-events: none;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+      .toast.error {
+        border-color: var(--red);
+        color: #fecaca;
+      }
+      @media (max-width: 768px) {
+        .op-panel {
+          padding: 20px;
+        }
+        .phase-heading {
+          font-size: 22px;
+        }
+        .intel-grid {
+          grid-template-columns: 1fr;
+        }
+        .op-header,
+        .op-footer {
+          padding: 16px 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="city-bg"></div>
+    <div class="skyline" id="skyline"></div>
+    <div class="rain"></div>
+    <div class="film-grain"></div>
+    <div class="scanlines"></div>
+    <div class="vignette"></div>
+    <div class="flash" id="flash"></div>
+    <div class="ui">
+      <div class="op-header">
+        <div class="op-title">
+          <i class="fas fa-crosshairs"></i> OPERAÇÃO DE CAPTURA — FASE FINAL
+        </div>
+        <div class="op-meta">
+          <div class="meta-chip location">
+            <i class="fas fa-map-marker-alt"></i> <span id="locText">—</span>
+          </div>
+          <div class="meta-chip timer">
+            <i class="fas fa-clock"></i> <span id="timerText">--</span>
+          </div>
+        </div>
+      </div>
+      <div class="op-main">
+        <div class="op-panel" id="phaseContainer"></div>
+      </div>
+      <div class="op-footer">
+        <a href="04-cidade.html" class="op-btn" id="abortBtn"
+          ><i class="fas fa-arrow-left"></i> Abortar — Voltar</a
+        >
+        <button class="op-btn primary" id="mainAction" style="display: none">
+          <i class="fas fa-forward"></i> Continuar
+        </button>
+      </div>
     </div>
-  </div>
-  <div class="op-main"><div class="op-panel" id="phaseContainer"></div></div>
-  <div class="op-footer">
-    <a href="04-cidade.html" class="op-btn" id="abortBtn"><i class="fas fa-arrow-left"></i> Abortar — Voltar</a>
-    <button class="op-btn primary" id="mainAction" style="display:none;"><i class="fas fa-forward"></i> Continuar</button>
-  </div>
-</div>
-<div class="toast" id="toast"></div>
+    <div class="toast" id="toast"></div>
 
-<script src="../database.js"></script>
-<script>
-(function(global){'use strict';
-const CASE_KEY='minexus_case_001';
-const DEFAULT_TIME_STATE={timeLimitHours:48,currentHour:9,currentDay:1,currentCityTZ:'UTC-5'};
-function loadCase(){try{const s=localStorage.getItem(CASE_KEY);return s?JSON.parse(s):null;}catch(e){return null;}}
-function saveCase(d){try{localStorage.setItem(CASE_KEY,JSON.stringify(d));}catch(e){}}
-function formatTimeLeft(h){if(h<=0)return 'ESGOTADO';const d=Math.floor(h/24),hh=Math.floor(h%24),m=Math.floor((h-Math.floor(h))*60);if(d>0)return d+'d '+hh+'h';if(hh>0)return hh+'h '+m+'min';return m+'min';}
-function consumeTime(hours,cityTZ){if(hours<=0)return{success:false};const d=loadCase();if(!d)return{success:false};if(!d.timeState)d.timeState={...DEFAULT_TIME_STATE};if(typeof d.timeLimitHours!=='number')d.timeLimitHours=d.timeState.timeLimitHours;let nh=d.timeState.currentHour+hours;let ov=0;while(nh>=24){nh-=24;ov++;}d.timeState.currentHour=nh;d.timeState.currentDay+=ov;d.timeLimitHours=Math.max(0,d.timeLimitHours-hours);d.timeState.timeLimitHours=d.timeLimitHours;if(cityTZ)d.timeState.currentCityTZ=cityTZ;saveCase(d);return{success:true,timeLeft:d.timeLimitHours,exhausted:d.timeLimitHours<=0};}
-global.NexusTime={consumeTime,formatTimeLeft};
-})(window);
-</script>
-<script src="../audio-system.js" defer></script>
-<script>
-(function(){'use strict';
-const CASE_KEY='minexus_case_001', WARRANT_KEY='minexus_warrant', CAPTURE_KEY='minexus_capture_result';
-const DB=window.NEXUS_DATABASE;
-let caseData,warrantData;
-try{caseData=JSON.parse(localStorage.getItem(CASE_KEY)||'null');}catch(e){}
-try{warrantData=JSON.parse(localStorage.getItem(WARRANT_KEY)||'null');}catch(e){}
-if(!caseData){alert('Nenhum caso ativo.');window.location.href='02-hq.html';return;}
-if(!warrantData||!warrantData.correct){alert('Mandado de prisão válido obrigatório.');window.location.href='05-crimenet.html';return;}
+    <script src="../database.js"></script>
+    <script>
+      (function (global) {
+        "use strict";
+        const CASE_KEY = "minexus_case_001";
+        const DEFAULT_TIME_STATE = {
+          timeLimitHours: 48,
+          currentHour: 9,
+          currentDay: 1,
+          currentCityTZ: "UTC-5",
+        };
+        function loadCase() {
+          try {
+            const s = localStorage.getItem(CASE_KEY);
+            return s ? JSON.parse(s) : null;
+          } catch (e) {
+            return null;
+          }
+        }
+        function saveCase(d) {
+          try {
+            localStorage.setItem(CASE_KEY, JSON.stringify(d));
+          } catch (e) {}
+        }
+        function formatTimeLeft(h) {
+          if (h <= 0) return "ESGOTADO";
+          const d = Math.floor(h / 24),
+            hh = Math.floor(h % 24),
+            m = Math.floor((h - Math.floor(h)) * 60);
+          if (d > 0) return d + "d " + hh + "h";
+          if (hh > 0) return hh + "h " + m + "min";
+          return m + "min";
+        }
+        function consumeTime(hours, cityTZ) {
+          if (hours <= 0) return { success: false };
+          const d = loadCase();
+          if (!d) return { success: false };
+          if (!d.timeState) d.timeState = { ...DEFAULT_TIME_STATE };
+          if (typeof d.timeLimitHours !== "number")
+            d.timeLimitHours = d.timeState.timeLimitHours;
+          let nh = d.timeState.currentHour + hours;
+          let ov = 0;
+          while (nh >= 24) {
+            nh -= 24;
+            ov++;
+          }
+          d.timeState.currentHour = nh;
+          d.timeState.currentDay += ov;
+          d.timeLimitHours = Math.max(0, d.timeLimitHours - hours);
+          d.timeState.timeLimitHours = d.timeLimitHours;
+          if (cityTZ) d.timeState.currentCityTZ = cityTZ;
+          saveCase(d);
+          return {
+            success: true,
+            timeLeft: d.timeLimitHours,
+            exhausted: d.timeLimitHours <= 0,
+          };
+        }
+        global.NexusTime = { consumeTime, formatTimeLeft };
+      })(window);
+    </script>
+    <script src="../audio-system.js" defer></script>
+    <script>
+      (function () {
+        "use strict";
+        const CASE_KEY = "minexus_case_001",
+          WARRANT_KEY = "minexus_warrant",
+          CAPTURE_KEY = "minexus_capture_result";
+        const DB = window.NEXUS_DATABASE;
+        let caseData, warrantData;
+        try {
+          caseData = JSON.parse(localStorage.getItem(CASE_KEY) || "null");
+        } catch (e) {}
+        try {
+          warrantData = JSON.parse(localStorage.getItem(WARRANT_KEY) || "null");
+        } catch (e) {}
+        if (!caseData) {
+          alert("Nenhum caso ativo.");
+          window.location.href = "02-hq.html";
+          return;
+        }
+        if (!warrantData || !warrantData.correct) {
+          alert("Mandado de prisão válido obrigatório.");
+          window.location.href = "05-crimenet.html";
+          return;
+        }
 
-const suspect=(DB.suspects||[]).find(s=>s.id===warrantData.targetId)||{name:warrantData.targetName,alias:'',initial:'?',portrait:null,quote:'',traits:[]};
-const location=warrantData.targetLocation||{city:'—',country:'—'};
+        const suspect = (DB.suspects || []).find(
+          (s) => s.id === warrantData.targetId,
+        ) || {
+          name: warrantData.targetName,
+          alias: "",
+          initial: "?",
+          portrait: null,
+          quote: "",
+          traits: [],
+        };
+        const location = warrantData.targetLocation || {
+          city: "—",
+          country: "—",
+        };
 
-const INTEL={
-  location:`${location.city}, ${location.country}`,
-  district:'Zona central',
-  venue:'Ponto de encontro do alvo',
-  time:'23:47',
-  weather:'Chuva leve, 12°C',
-  team:['Unidade Alfa','Unidade Bravo','Vigia Leste']
-};
+        const INTEL = {
+          location: `${location.city}, ${location.country}`,
+          district: "Zona central",
+          venue: "Ponto de encontro do alvo",
+          time: "23:47",
+          weather: "Chuva leve, 12°C",
+          team: ["Unidade Alfa", "Unidade Bravo", "Vigia Leste"],
+        };
 
-const TACTICS=[
-  { id:'silent', icon:'fa-user-ninja', name:'Cerco Silencioso', desc:'Infiltração disfarçada entre os convidados. Aproximação gradual sem alertar o alvo. Ideal para suspeitos cerebrais e cautelosos.', risk:'low', riskLabel:'Risco Baixo' },
-  { id:'direct', icon:'fa-bullhorn', name:'Confronto Direto', desc:'Anunciar a prisão publicamente e exigir rendição. Rápido, mas pode provocar tentativa de fuga ou destruição de evidências.', risk:'med', riskLabel:'Risco Médio' },
-  { id:'trap', icon:'fa-chess', name:'Armadilha Preparada', desc:'Vazar informação falsa sobre um comprador rival para atrair o suspeito a um ponto controlado. Requer tempo de preparação.', risk:'high', riskLabel:'Risco Alto' }
-];
+        const TACTICS = [
+          {
+            id: "silent",
+            icon: "fa-user-ninja",
+            name: "Cerco Silencioso",
+            desc: "Infiltração disfarçada entre os convidados. Aproximação gradual sem alertar o alvo. Ideal para suspeitos cerebrais e cautelosos.",
+            risk: "low",
+            riskLabel: "Risco Baixo",
+          },
+          {
+            id: "direct",
+            icon: "fa-bullhorn",
+            name: "Confronto Direto",
+            desc: "Anunciar a prisão publicamente e exigir rendição. Rápido, mas pode provocar tentativa de fuga ou destruição de evidências.",
+            risk: "med",
+            riskLabel: "Risco Médio",
+          },
+          {
+            id: "trap",
+            icon: "fa-chess",
+            name: "Armadilha Preparada",
+            desc: "Vazar informação falsa sobre um comprador rival para atrair o suspeito a um ponto controlado. Requer tempo de preparação.",
+            risk: "high",
+            riskLabel: "Risco Alto",
+          },
+        ];
 
-const DECISIONS=[
-  { text:'O alvo parou no centro do salão e examina a sala. Os olhos dele percorrem as saídas de emergência.',
-    options:[
-      {label:'Manter posição. Respirar. Esperar ele relaxar.',style:'silent'},
-      {label:'Avançar AGORA antes que ele pense em fugir.',style:'direct'},
-      {label:'Plantar uma isca falsa perto da saída leste.',style:'trap'}
-    ]},
-  { text:'Um garçom derruba uma bandeja a dois metros do alvo. Ele se vira, tenso, mão deslizando para o bolso interno.',
-    options:[
-      {label:'Congelar toda a equipe. Ninguém se move.',style:'silent'},
-      {label:'Ordem de abordagem IMEDIATA. Gritar "POLÍCIA!".',style:'direct'},
-      {label:'Acionar a distração secundária no lado oposto.',style:'trap'}
-    ]}
-];
+        const DECISIONS = [
+          {
+            text: "O alvo parou no centro do salão e examina a sala. Os olhos dele percorrem as saídas de emergência.",
+            options: [
+              {
+                label: "Manter posição. Respirar. Esperar ele relaxar.",
+                style: "silent",
+              },
+              {
+                label: "Avançar AGORA antes que ele pense em fugir.",
+                style: "direct",
+              },
+              {
+                label: "Plantar uma isca falsa perto da saída leste.",
+                style: "trap",
+              },
+            ],
+          },
+          {
+            text: "Um garçom derruba uma bandeja a dois metros do alvo. Ele se vira, tenso, mão deslizando para o bolso interno.",
+            options: [
+              {
+                label: "Congelar toda a equipe. Ninguém se move.",
+                style: "silent",
+              },
+              {
+                label: 'Ordem de abordagem IMEDIATA. Gritar "POLÍCIA!".',
+                style: "direct",
+              },
+              {
+                label: "Acionar a distração secundária no lado oposto.",
+                style: "trap",
+              },
+            ],
+          },
+        ];
 
-let currentPhase='briefing', chosenTactic=null, goodChoices=0, logTimer=null, decisionTimer=null;
+        let currentPhase = "briefing",
+          chosenTactic = null,
+          goodChoices = 0,
+          logTimer = null,
+          decisionTimer = null;
 
-function audio(ev){try{if(window.ArchiveAudio&&typeof window.ArchiveAudio[ev]==='function')window.ArchiveAudio[ev]();}catch(e){}}
-let toastTimer;
-function showToast(msg,type='info'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type!=='info'?' '+type:'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3000);}
-function syncTimer(){const h=caseData.timeLimitHours||0;document.getElementById('timerText').textContent=window.NexusTime.formatTimeLeft(h);}
+        function audio(ev) {
+          try {
+            if (
+              window.ArchiveAudio &&
+              typeof window.ArchiveAudio[ev] === "function"
+            )
+              window.ArchiveAudio[ev]();
+          } catch (e) {}
+        }
+        let toastTimer;
+        function showToast(msg, type = "info") {
+          const t = document.getElementById("toast");
+          t.textContent = msg;
+          t.className = "toast show" + (type !== "info" ? " " + type : "");
+          clearTimeout(toastTimer);
+          toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
+        }
+        function syncTimer() {
+          const h = caseData.timeLimitHours || 0;
+          document.getElementById("timerText").textContent =
+            window.NexusTime.formatTimeLeft(h);
+        }
 
-window.mugFallback=function(img){
-  if(img.dataset.fb){ img.src=img.dataset.fb; img.dataset.fb=''; }
-  else{ img.parentElement.innerHTML=img.dataset.init||'?'; }
-};
+        window.mugFallback = function (img) {
+          if (img.dataset.fb) {
+            img.src = img.dataset.fb;
+            img.dataset.fb = "";
+          } else {
+            img.parentElement.innerHTML = img.dataset.init || "?";
+          }
+        };
 
-function renderSkyline(){const c=document.getElementById('skyline');c.innerHTML='';const hs=[65,80,50,90,72,60,85,45,78,55,88,62,75,58,82,68,70,52,86,64];hs.forEach(h=>{const t=document.createElement('div');t.className='tower';t.style.height=h+'%';c.appendChild(t);});}
+        function renderSkyline() {
+          const c = document.getElementById("skyline");
+          c.innerHTML = "";
+          const hs = [
+            65, 80, 50, 90, 72, 60, 85, 45, 78, 55, 88, 62, 75, 58, 82, 68, 70,
+            52, 86, 64,
+          ];
+          hs.forEach((h) => {
+            const t = document.createElement("div");
+            t.className = "tower";
+            t.style.height = h + "%";
+            c.appendChild(t);
+          });
+        }
 
-function spend(hours,label){
-  const res=window.NexusTime.consumeTime(hours,caseData.timeState?.currentCityTZ||'UTC-5');
-  if(res&&res.success){caseData.timeLimitHours=res.timeLeft;syncTimer();if(label)showToast(label,'info');if(res.exhausted){failByTimeout();return false;}return true;}
-  return true;
-}
+        function spend(hours, label) {
+          const res = window.NexusTime.consumeTime(
+            hours,
+            caseData.timeState?.currentCityTZ || "UTC-5",
+          );
+          if (res && res.success) {
+            caseData.timeLimitHours = res.timeLeft;
+            syncTimer();
+            if (label) showToast(label, "info");
+            if (res.exhausted) {
+              failByTimeout();
+              return false;
+            }
+            return true;
+          }
+          return true;
+        }
 
-function renderPhase(){
-  const c=document.getElementById('phaseContainer');
-  if(currentPhase==='briefing')renderBriefing(c);
-  else if(currentPhase==='execution')renderExecution(c);
-  else if(currentPhase==='result')renderResult(c);
-}
+        function renderPhase() {
+          const c = document.getElementById("phaseContainer");
+          if (currentPhase === "briefing") renderBriefing(c);
+          else if (currentPhase === "execution") renderExecution(c);
+          else if (currentPhase === "result") renderResult(c);
+        }
 
-function renderBriefing(c){
-  document.getElementById('mainAction').style.display='none';
-  document.getElementById('abortBtn').style.display='flex';
-  document.getElementById('locText').textContent=INTEL.location;
-  const tacticsHtml=TACTICS.map(t=>`
+        function renderBriefing(c) {
+          document.getElementById("mainAction").style.display = "none";
+          document.getElementById("abortBtn").style.display = "flex";
+          document.getElementById("locText").textContent = INTEL.location;
+          const tacticsHtml = TACTICS.map(
+            (t) => `
     <div class="tactic-card" data-tactic="${t.id}">
       <div class="tactic-icon"><i class="fas ${t.icon}"></i></div>
       <div class="tactic-info">
@@ -229,8 +1099,9 @@ function renderBriefing(c){
         <div class="tactic-desc">${t.desc}</div>
         <span class="tactic-risk ${t.risk}">${t.riskLabel}</span>
       </div>
-    </div>`).join('');
-  c.innerHTML=`
+    </div>`,
+          ).join("");
+          c.innerHTML = `
     <div class="phase-title">Inteligência de Campo</div>
     <div class="phase-heading">Posição do Alvo Confirmada</div>
     <div class="intel-grid">
@@ -243,125 +1114,315 @@ function renderBriefing(c){
     </div>
     <div class="phase-title">Escolha a Abordagem Tática</div>
     <div class="tactics-grid">${tacticsHtml}</div>`;
-  c.querySelectorAll('.tactic-card').forEach(card=>{
-    card.addEventListener('click',()=>{chosenTactic=card.dataset.tactic;goodChoices=0;audio('playClick');currentPhase='execution';renderPhase();});
-  });
-}
+          c.querySelectorAll(".tactic-card").forEach((card) => {
+            card.addEventListener("click", () => {
+              chosenTactic = card.dataset.tactic;
+              goodChoices = 0;
+              audio("playClick");
+              currentPhase = "execution";
+              renderPhase();
+            });
+          });
+        }
 
-function renderExecution(c){
-  const tactic=TACTICS.find(t=>t.id===chosenTactic);
-  if(!spend(tactic.risk==='high'?3:1,`⏱ Preparação da abordagem: -${tactic.risk==='high'?3:1}h`))return;
-  document.getElementById('abortBtn').style.display='none';
-  c.innerHTML=`
+        function renderExecution(c) {
+          const tactic = TACTICS.find((t) => t.id === chosenTactic);
+          if (
+            !spend(
+              tactic.risk === "high" ? 3 : 1,
+              `⏱ Preparação da abordagem: -${tactic.risk === "high" ? 3 : 1}h`,
+            )
+          )
+            return;
+          document.getElementById("abortBtn").style.display = "none";
+          c.innerHTML = `
     <div class="phase-title">Execução da Abordagem</div>
     <div class="phase-heading" style="font-size:20px;">${tactic.name} — ${INTEL.venue}</div>
     <div class="radio-log" id="radioLog"></div>
     <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
     <div id="decisionSlot"></div>`;
-  const logEl=document.getElementById('radioLog');
-  const fillEl=document.getElementById('progressFill');
-  const slot=document.getElementById('decisionSlot');
-  const seq=[
-    {line:{time:'23:51',unit:'Vigia Leste',msg:`Alvo confirmado em ${INTEL.venue}. Repetindo, alvo no salão principal.`}},
-    {line:{time:'23:52',unit:'Unidade Alfa',msg:`Equipe em posição. Abordagem "${tactic.name}" iniciada.`}},
-    {line:{time:'23:54',unit:'Unidade Bravo',msg:'Perímetro selado. Nenhuma rota de fuga externa.'}},
-    {decision:0},
-    {line:{time:'23:56',unit:'Unidade Alfa',msg:'Movimentação do alvo acompanhada em tempo real.'}},
-    {decision:1},
-    {line:{time:'23:58',unit:'Unidade Alfa',msg:'Contato estabelecido. Mandado apresentado.',cls:'alert'}},
-    {line:{time:'23:59',unit:'Unidade Alfa',msg:'__RESULT__',cls:'success'}}
-  ];
-  let i=0;const total=seq.length;
-  
-  // 🚨 SIRENE LIGADA NO INÍCIO DA EXECUÇÃO
-  audio('startSiren');
-  
-  function pushLine(l){const div=document.createElement('div');div.className='log-line'+(l.cls?' '+l.cls:'');div.innerHTML=`<span class="time">${l.time}</span><span class="unit">[${l.unit}]</span> <span class="msg">${l.msg}</span>`;logEl.appendChild(div);logEl.scrollTop=logEl.scrollHeight;audio('playRadioStatic');}
-  function updateProgress(){fillEl.style.width=(i/total*100)+'%';}
-  function nextStep(){
-    if(i>=seq.length)return;
-    const step=seq[i];i++;updateProgress();
-    if(step.line){
-      if(step.line.msg==='__RESULT__'){finishExecution();return;}
-      pushLine(step.line);setTimeout(nextStep,900);
-    } else if(step.decision!==undefined){
-      showDecision(DECISIONS[step.decision],slot,(style,timedOut)=>{
-        slot.innerHTML='';
-        if(timedOut){pushLine({time:'--:--',unit:'Sistema',msg:'HESITAÇÃO DETECTADA. A equipe perdeu a janela ideal.',cls:'alert'});}
-        else if(style===chosenTactic){goodChoices++;pushLine({time:'--:--',unit:'Unidade Alfa',msg:'Decisão coerente com a tática. Execução limpa.',cls:'success'});}
-        else{pushLine({time:'--:--',unit:'Unidade Alfa',msg:'Decisão CONTRA a doutrina da tática! A equipe se desestabiliza.',cls:'alert'});spend(0.5,'⏱ Improviso custou -30min');}
-        setTimeout(nextStep,900);
-      });
-    }
-  }
-  function finishExecution(){
-    updateProgress();
-    audio('stopSiren');
-    
-    // 🔫 TIROS SE FOR CONFRONTO DIRETO
-    if(chosenTactic==='direct'){audio('playGunshots');}
-    
-    setTimeout(()=>{
-      triggerFlash();
-      if(goodChoices>=1){
-        audio('playSuccess');
-        audio('playHandcuffs'); // ⛓️ ALGEMAS AO CAPTURAR
-        currentPhase='result';
-      }else{
-        audio('playError');
-        currentPhase='failure';
-      }
-      renderPhase();
-    },800);
-  }
-  nextStep();
-}
+          const logEl = document.getElementById("radioLog");
+          const fillEl = document.getElementById("progressFill");
+          const slot = document.getElementById("decisionSlot");
+          const seq = [
+            {
+              line: {
+                time: "23:51",
+                unit: "Vigia Leste",
+                msg: `Alvo confirmado em ${INTEL.venue}. Repetindo, alvo no salão principal.`,
+              },
+            },
+            {
+              line: {
+                time: "23:52",
+                unit: "Unidade Alfa",
+                msg: `Equipe em posição. Abordagem "${tactic.name}" iniciada.`,
+              },
+            },
+            {
+              line: {
+                time: "23:54",
+                unit: "Unidade Bravo",
+                msg: "Perímetro selado. Nenhuma rota de fuga externa.",
+              },
+            },
+            { decision: 0 },
+            {
+              line: {
+                time: "23:56",
+                unit: "Unidade Alfa",
+                msg: "Movimentação do alvo acompanhada em tempo real.",
+              },
+            },
+            { decision: 1 },
+            {
+              line: {
+                time: "23:58",
+                unit: "Unidade Alfa",
+                msg: "Contato estabelecido. Mandado apresentado.",
+                cls: "alert",
+              },
+            },
+            {
+              line: {
+                time: "23:59",
+                unit: "Unidade Alfa",
+                msg: "__RESULT__",
+                cls: "success",
+              },
+            },
+          ];
+          let i = 0;
+          const total = seq.length;
 
-function showDecision(dec,slot,onDone){
-  let remaining=10;
-  slot.innerHTML=`<div class="decision-panel"><div class="decision-head"><span class="decision-label"><i class="fas fa-bolt"></i> Decisão em campo</span><span class="decision-timer" id="decTimer">10s</span></div><div class="decision-text">${dec.text}</div><div class="decision-options">${dec.options.map((o,idx)=>`<button class="decision-opt" data-idx="${idx}">${o.label}</button>`).join('')}</div></div>`;
-  const timerEl=slot.querySelector('#decTimer');
-  decisionTimer=setInterval(()=>{remaining--;timerEl.textContent=remaining+'s';if(remaining<=3)timerEl.classList.add('urgent');if(remaining<=0){clearInterval(decisionTimer);onDone(null,true);}},1000);
-  slot.querySelectorAll('.decision-opt').forEach(btn=>{
-    btn.addEventListener('click',()=>{clearInterval(decisionTimer);const opt=dec.options[parseInt(btn.dataset.idx,10)];audio('playClick');onDone(opt.style,false);});
-  });
-}
+          // 🚨 SIRENE LIGADA NO INÍCIO DA EXECUÇÃO
+          audio("startSiren");
 
-function ratingCaption(r){
-  if(r==='S')return 'Nem um amassado no terno. O alvo saiu como se nada tivesse acontecido.';
-  if(r==='A')return 'Um olho roxo pela resistência oferecida. Nada que uma semana não cure.';
-  return 'Braço na tipóia. Nunca corra da equipe tática.';
-}
+          function pushLine(l) {
+            const div = document.createElement("div");
+            div.className = "log-line" + (l.cls ? " " + l.cls : "");
+            div.innerHTML = `<span class="time">${l.time}</span><span class="unit">[${l.unit}]</span> <span class="msg">${l.msg}</span>`;
+            logEl.appendChild(div);
+            logEl.scrollTop = logEl.scrollHeight;
+            audio("playRadioStatic");
+          }
+          function updateProgress() {
+            fillEl.style.width = (i / total) * 100 + "%";
+          }
+          function nextStep() {
+            if (i >= seq.length) return;
+            const step = seq[i];
+            i++;
+            updateProgress();
+            if (step.line) {
+              if (step.line.msg === "__RESULT__") {
+                finishExecution();
+                return;
+              }
+              pushLine(step.line);
+              setTimeout(nextStep, 900);
+            } else if (step.decision !== undefined) {
+              showDecision(
+                DECISIONS[step.decision],
+                slot,
+                (style, timedOut) => {
+                  slot.innerHTML = "";
+                  if (timedOut) {
+                    pushLine({
+                      time: "--:--",
+                      unit: "Sistema",
+                      msg: "HESITAÇÃO DETECTADA. A equipe perdeu a janela ideal.",
+                      cls: "alert",
+                    });
+                  } else if (style === chosenTactic) {
+                    goodChoices++;
+                    pushLine({
+                      time: "--:--",
+                      unit: "Unidade Alfa",
+                      msg: "Decisão coerente com a tática. Execução limpa.",
+                      cls: "success",
+                    });
+                  } else {
+                    pushLine({
+                      time: "--:--",
+                      unit: "Unidade Alfa",
+                      msg: "Decisão CONTRA a doutrina da tática! A equipe se desestabiliza.",
+                      cls: "alert",
+                    });
+                    spend(0.5, "⏱ Improviso custou -30min");
+                  }
+                  setTimeout(nextStep, 900);
+                },
+              );
+            }
+          }
+          function finishExecution() {
+            updateProgress();
+            audio("stopSiren");
 
-function renderResult(c){
-  spend(1,'⏱ Processamento da prisão: -1h');
-  const rating=(goodChoices>=2&&chosenTactic==='silent')?'S':(goodChoices>=2)?'A':'B';
-  const ratingDesc=rating==='S'?'Operação perfeita. Nenhum disparo, nenhuma testemunha alarmada, artefato intacto.':rating==='A'?'Excelente execução. Resistência mínima, evidências preservadas.':'Captura concluída com complicações. O alvo resistiu, mas foi contido.';
-  try{localStorage.setItem(CAPTURE_KEY,JSON.stringify({caseId:caseData.id,suspectId:suspect.id,suspectName:suspect.name,artifact:caseData.artifact,artifactImage:caseData.artifactImage,artifactIcon:caseData.artifactIcon,capturedAt:Date.now(),tactic:chosenTactic,rating:rating,goodChoices:goodChoices}));}catch(e){}
+            // 🔫 TIROS SE FOR CONFRONTO DIRETO
+            if (chosenTactic === "direct") {
+              audio("playGunshots");
+            }
 
-  // ⛓️ PRENDE O VILÃO + conta caso resolvido (fora do array fields!)
-  (function(){
-    var R='minexus_resolved';var r=(JSON.parse(localStorage.getItem(R))||0)+1;localStorage.setItem(R,JSON.stringify(r));
-    var P='minexus_prison';var p=JSON.parse(localStorage.getItem(P))||[];
-    var id=(suspect.id||'').trim();
-    if(!p.some(function(x){return x.id===id;}))p.push({id:id,caseId:caseData.id,at:Date.now()});
-    localStorage.setItem(P,JSON.stringify(p));
-  })();
+            setTimeout(() => {
+              triggerFlash();
+              if (goodChoices >= 1) {
+                audio("playSuccess");
+                audio("playHandcuffs"); // ⛓️ ALGEMAS AO CAPTURAR
+                currentPhase = "result";
+              } else {
+                audio("playError");
+                currentPhase = "failure";
+              }
+              renderPhase();
+            }, 800);
+          }
+          nextStep();
+        }
 
-  const fields=[
-    {label:'Nacionalidade',value:suspect.nationality||'—'},
-    {label:'Idade Estimada',value:suspect.age||'—'},
-    {label:'Alcunha',value:suspect.alias||'—'},
-    {label:'Status',value:'SOB CUSTÓDIA'},
-    {label:'Caso',value:caseData.codename},
-    {label:'Artefato',value:caseData.artifact}
-  ];
+        function showDecision(dec, slot, onDone) {
+          let remaining = 10;
+          slot.innerHTML = `<div class="decision-panel"><div class="decision-head"><span class="decision-label"><i class="fas fa-bolt"></i> Decisão em campo</span><span class="decision-timer" id="decTimer">10s</span></div><div class="decision-text">${dec.text}</div><div class="decision-options">${dec.options.map((o, idx) => `<button class="decision-opt" data-idx="${idx}">${o.label}</button>`).join("")}</div></div>`;
+          const timerEl = slot.querySelector("#decTimer");
+          decisionTimer = setInterval(() => {
+            remaining--;
+            timerEl.textContent = remaining + "s";
+            if (remaining <= 3) timerEl.classList.add("urgent");
+            if (remaining <= 0) {
+              clearInterval(decisionTimer);
+              onDone(null, true);
+            }
+          }, 1000);
+          slot.querySelectorAll(".decision-opt").forEach((btn) => {
+            btn.addEventListener("click", () => {
+              clearInterval(decisionTimer);
+              const opt = dec.options[parseInt(btn.dataset.idx, 10)];
+              audio("playClick");
+              onDone(opt.style, false);
+            });
+          });
+        }
 
-  const mugKey={S:'limpo',A:'forca',B:'agressiva'}[rating]||'limpo';
-  const mugSrc='../img/mugshot-'+suspect.id+'-'+mugKey+'.jpg';
-  const portrait='<img src="'+mugSrc+'" alt="'+suspect.name+'" data-fb="'+(suspect.portrait||'')+'" data-init="'+(suspect.initial||'?')+'" onerror="mugFallback(this)">';
+        function ratingCaption(r) {
+          if (r === "S")
+            return "Nem um amassado no terno. O alvo saiu como se nada tivesse acontecido.";
+          if (r === "A")
+            return "Um olho roxo pela resistência oferecida. Nada que uma semana não cure.";
+          return "Braço na tipóia. Nunca corra da equipe tática.";
+        }
 
-  c.innerHTML=`
+        function renderResult(c) {
+          spend(1, "⏱ Processamento da prisão: -1h");
+          const rating =
+            goodChoices >= 2 && chosenTactic === "silent"
+              ? "S"
+              : goodChoices >= 2
+                ? "A"
+                : "B";
+          const ratingDesc =
+            rating === "S"
+              ? "Operação perfeita. Nenhum disparo, nenhuma testemunha alarmada, artefato intacto."
+              : rating === "A"
+                ? "Excelente execução. Resistência mínima, evidências preservadas."
+                : "Captura concluída com complicações. O alvo resistiu, mas foi contido.";
+          try {
+            localStorage.setItem(
+              CAPTURE_KEY,
+              JSON.stringify({
+                caseId: caseData.id,
+                suspectId: suspect.id,
+                suspectName: suspect.name,
+                artifact: caseData.artifact,
+                artifactImage: caseData.artifactImage,
+                artifactIcon: caseData.artifactIcon,
+                capturedAt: Date.now(),
+                tactic: chosenTactic,
+                rating: rating,
+                goodChoices: goodChoices,
+              }),
+            );
+          } catch (e) {}
+
+          // ⛓️ PRENDE o vilão + LIMPA foragidos + GRAVA troféu + conta resolvido
+          (function () {
+            try {
+              var id = (suspect.id || "").trim();
+              // 1) Prisão
+              var P = "minexus_prison",
+                p = JSON.parse(localStorage.getItem(P)) || [];
+              if (
+                !p.some(function (x) {
+                  return x.id === id;
+                })
+              )
+                p.push({ id: id, caseId: caseData.id, at: Date.now() });
+              localStorage.setItem(P, JSON.stringify(p));
+              // 2) Remove foragidos deste vilão OU deste artefato (artefato foi recuperado)
+              var F = "minexus_fugitives",
+                f = JSON.parse(localStorage.getItem(F)) || [];
+              localStorage.setItem(
+                F,
+                JSON.stringify(
+                  f.filter(function (x) {
+                    return (
+                      x.culpritId !== id && x.artifact !== caseData.artifact
+                    );
+                  }),
+                ),
+              );
+              // 3) Contador de casos resolvidos
+              var R = "minexus_resolved";
+              localStorage.setItem(
+                R,
+                JSON.stringify((JSON.parse(localStorage.getItem(R)) || 0) + 1),
+              );
+              // 4) Troféu na coleção (sem duplicar)
+              var C = "minexus_museum_collection",
+                col = JSON.parse(localStorage.getItem(C)) || [];
+              if (
+                !col.some(function (x) {
+                  return x.caseId === caseData.id;
+                })
+              ) {
+                col.push({
+                  caseId: caseData.id,
+                  codename: caseData.codename,
+                  artifact: caseData.artifact,
+                  artifactIcon: caseData.artifactIcon,
+                  artifactImage: caseData.artifactImage,
+                  rating: rating,
+                  at: Date.now(),
+                });
+                localStorage.setItem(C, JSON.stringify(col));
+              }
+            } catch (e) {}
+          })();
+
+          const fields = [
+            { label: "Nacionalidade", value: suspect.nationality || "—" },
+            { label: "Idade Estimada", value: suspect.age || "—" },
+            { label: "Alcunha", value: suspect.alias || "—" },
+            { label: "Status", value: "SOB CUSTÓDIA" },
+            { label: "Caso", value: caseData.codename },
+            { label: "Artefato", value: caseData.artifact },
+          ];
+
+          const mugKey =
+            { S: "limpo", A: "forca", B: "agressiva" }[rating] || "limpo";
+          const mugSrc = "../img/mugshot-" + suspect.id + "-" + mugKey + ".jpg";
+          const portrait =
+            '<img src="' +
+            mugSrc +
+            '" alt="' +
+            suspect.name +
+            '" data-fb="' +
+            (suspect.portrait || "") +
+            '" data-init="' +
+            (suspect.initial || "?") +
+            '" onerror="mugFallback(this)">';
+
+          c.innerHTML = `
     <div class="phase-title">Registro de Detenção</div>
     <div class="phase-heading">Alvo Neutralizado</div>
     <div class="dossier">
@@ -370,10 +1431,10 @@ function renderResult(c){
         <div>
           <div class="dossier-name">${suspect.name}</div>
           <div class="dossier-alias">"${suspect.alias}"</div>
-          <div class="dossier-quote">${suspect.quote||''}</div>
+          <div class="dossier-quote">${suspect.quote || ""}</div>
         </div>
       </div>
-      <div class="dossier-fields">${fields.map(f=>`<div class="field-row"><div class="label">${f.label}</div><div class="value">${f.value}</div></div>`).join('')}</div>
+      <div class="dossier-fields">${fields.map((f) => `<div class="field-row"><div class="label">${f.label}</div><div class="value">${f.value}</div></div>`).join("")}</div>
       <div class="stamp captured">CAPTURADO</div>
     </div>
     <div class="rating-box">
@@ -385,27 +1446,47 @@ function renderResult(c){
       </div>
     </div>
     <div class="artifact-reveal">
-      ${caseData.artifactImage?`<img class="artifact-img" src="${caseData.artifactImage}" alt="${caseData.artifact}" onerror="this.outerHTML='<div class=\\'artifact-icon\\'>${caseData.artifactIcon||'🏺'}</div>'">`:`<div class="artifact-icon">${caseData.artifactIcon||'🏺'}</div>`}
+      ${caseData.artifactImage ? `<img class="artifact-img" src="${caseData.artifactImage}" alt="${caseData.artifact}" onerror="this.outerHTML='<div class=\\'artifact-icon\\'>${caseData.artifactIcon || "🏺"}</div>'">` : `<div class="artifact-icon">${caseData.artifactIcon || "🏺"}</div>`}
       <div class="artifact-name">${caseData.artifact}</div>
       <div class="artifact-status"><i class="fas fa-check-circle"></i> Recuperado com sucesso</div>
     </div>`;
-  const btn=document.getElementById('mainAction');
-  btn.style.display='flex';
-  btn.innerHTML='<i class="fas fa-trophy"></i> Entregar ao Museu';
-  btn.onclick=()=>{audio('playClick');window.location.href='08-fuga.html';};
-  document.getElementById('abortBtn').style.display='none';
-}
+          const btn = document.getElementById("mainAction");
+          btn.style.display = "flex";
+          btn.innerHTML = '<i class="fas fa-trophy"></i> Entregar ao Museu';
+          btn.onclick = () => {
+            audio("playClick");
+            window.location.href = "08-fuga.html";
+          };
+          document.getElementById("abortBtn").style.display = "none";
+        }
 
-function failByTimeout(){
-  audio('stopSiren');
-  showToast('⏰ PRAZO ESGOTADO durante a operação!','error');audio('playError');
-  setTimeout(()=>{try{localStorage.removeItem(CASE_KEY);localStorage.removeItem(WARRANT_KEY);}catch(e){}window.location.href='02-hq.html';},2500);
-}
-function triggerFlash(){const f=document.getElementById('flash');f.classList.remove('active');void f.offsetWidth;f.classList.add('active');}
+        function failByTimeout() {
+          audio("stopSiren");
+          showToast("⏰ PRAZO ESGOTADO durante a operação!", "error");
+          audio("playError");
+          setTimeout(() => {
+            try {
+              localStorage.removeItem(CASE_KEY);
+              localStorage.removeItem(WARRANT_KEY);
+            } catch (e) {}
+            window.location.href = "02-hq.html";
+          }, 2500);
+        }
+        function triggerFlash() {
+          const f = document.getElementById("flash");
+          f.classList.remove("active");
+          void f.offsetWidth;
+          f.classList.add("active");
+        }
 
-renderSkyline();syncTimer();renderPhase();
-console.log('[CAPTURA] v5.0 — Som de Cinema (sirene/tiros/algemas/rádio) | Alvo:',suspect.name);
-})();
-</script>
-</body>
+        renderSkyline();
+        syncTimer();
+        renderPhase();
+        console.log(
+          "[CAPTURA] v5.0 — Som de Cinema (sirene/tiros/algemas/rádio) | Alvo:",
+          suspect.name,
+        );
+      })();
+    </script>
+  </body>
 </html>

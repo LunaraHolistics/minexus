@@ -149,6 +149,7 @@ if(caseData){
 }
 // 🚨 Foragidos com reabertura devida
 var due=Career.dueFugitives();
+  due=due.filter(function(f){return !Career.isImprisoned(f.culpritId);});
 if(due.length){
   var fs=document.getElementById('fugSlot');
   fs.innerHTML='<div class="section-title fug"><i class="fas fa-bolt"></i> Foragidos — Novos Indícios</div><div class="cases-grid" id="fugGrid"></div>';
