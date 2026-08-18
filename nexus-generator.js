@@ -1,14 +1,13 @@
 /**
- * NEXUS GENERATOR v4.0 — Roteirista procedural
- * - Revelação progressiva (5 cidades: roubo → +2 → +2)
- * - DENSIDADE ALTA: múltiplos locais por cidade dão o salto geográfico
- * - Exclui vilões PRESOS do pool de culpados
- * - Suporta caso REABERTO (culpritId fixo = foragido)
+ * NEXUS GENERATOR v5.0 — Roteirista procedural
+ * - Revelação progressiva (5 cidades)
+ * - Funil de identidade COMPLETO já no trânsito (mandado cedo)
+ * - TEMPO DINÂMICO calculado pela rota sorteada
+ * - Exclui vilões PRESOS | suporta caso REABERTO (culpritId)
  */
 (function () {
   "use strict";
   var DB = window.NEXUS_DATABASE;
-
   function getPrison() {
     try {
       var p = JSON.parse(localStorage.getItem("minexus_prison")) || [];
@@ -308,6 +307,30 @@
     return "Soube que ele partiu rumo a " + to + ".";
   }
 
+  /* ⏱️ Tempo de viagem entre duas cidades (usa DB.routes) */
+  function routeTime(a, b) {
+    function nk(s) {
+      return (s || "").replace(/\s+/g, "_");
+    }
+    var r =
+      (DB.routes || {})[nk(a) + "_" + nk(b)] ||
+      (DB.routes || {})[nk(b) + "_" + nk(a)];
+    if (!r) return 12;
+    var best = (r.flight || 12) + (r.flightWait || 0);
+    if (r.car && r.car < best) best = r.car;
+    return best;
+  }
+  /* 🧮 Orçamento de tempo baseado na rota sorteada */
+  function computeBudget(theft, transit, capture) {
+    var travel = routeTime(theft, transit) + routeTime(transit, capture);
+    var investigation = 6 * 3; // 3 cidades × 6h de interrogatórios
+    var decoyBuffer = 12; // 1 viagem errada + recuperação
+    var captureOp = 4; // operação de captura
+    var sleep = 4; // sono obrigatório
+    var total = travel + investigation + decoyBuffer + captureOp + sleep;
+    return Math.max(40, Math.min(96, Math.ceil(total)));
+  }
+
   function makeLoc(city, i, witness, clue, geo, rnd) {
     var sh = SHELLS[i];
     var loc = {
@@ -338,8 +361,8 @@
     if (geo) {
       loc.hasClue = true;
       loc.geoClue = geo.text;
-      if (geo.reveal && geo.reveal.length) loc.reveals = geo.reveal;
       loc.pointsTo = geo.pointsTo || geo.reveal || [];
+      if (geo.reveal && geo.reveal.length) loc.reveals = geo.reveal;
     }
     if (!clue && !geo) {
       loc.hasClue = false;
@@ -365,7 +388,6 @@
     var artifacts = window.NEXUS_ARTIFACTS || [];
     var artifact = opts.artifact || pick(rnd, artifacts);
 
-    // ⛓️ Exclui vilões PRESOS (a menos que seja caso reaberto com culpritId fixo)
     var imprisoned = getPrison().map(function (x) {
       return x.id;
     });
@@ -404,7 +426,7 @@
     });
     var decoy2 = pick(rnd, p4);
 
-    // Funil de identidade simulado — com mais pistas por estágio
+    /* 🎯 Funil: identificação COMPLETA já no trânsito (mandado cedo) */
     var ALL = {};
     suspects.forEach(function (s) {
       s.traits.forEach(function (t) {
@@ -465,17 +487,18 @@
     addPos(0);
     addPos(0);
     addNeg(0);
-    addNeg(0); // 4 pistas no roubo
+    addNeg(0); // roubo: 4 pistas
     addPos(1);
-    addNeg(1);
-    addNeg(1); // 3 pistas no trânsito
+    addNeg(1); // trânsito base
     var g = 0;
-    while (rem.length > 1 && g < 8) {
-      if (!addPos(2)) {
-        if (!addNeg(2)) break;
+    while (rem.length > 1 && g < 10) {
+      if (!addPos(1)) {
+        if (!addNeg(1)) break;
       }
       g++;
-    }
+    } // afunila até 1 no trânsito
+    addPos(2);
+    addNeg(2); // captura: confirmação
 
     var R1 = [transit, decoy1],
       R2 = [capture, decoy2];
@@ -486,22 +509,18 @@
     };
     var geoMain2 = { text: geoClueText(capture, rnd), reveal: R2 };
     var locations = {};
-
-    // 🎯 ROUBO: 2 locais dão o salto principal + 1 dá a isca
     locations[theft] = buildCity(
       theft,
       stages[0],
       [geoMain1, geoMain1, geoDecoy1],
       rnd,
     );
-    // 🎯 TRÂNSITO: 2 locais revelam a CAPTURA (não dá pra travar)
     locations[transit] = buildCity(
       transit,
       stages[1],
       [geoMain2, geoMain2],
       rnd,
     );
-    // 🎯 CAPTURA: confirmação final
     locations[capture] = buildCity(
       capture,
       stages[2],
@@ -514,7 +533,6 @@
       ],
       rnd,
     );
-    // 🎯 ISCA 1: 2 locais confessam que é despiste e apontam o trânsito
     locations[decoy1] = buildCity(
       decoy1,
       [],
@@ -533,7 +551,6 @@
       ],
       rnd,
     );
-    // 🎯 ISCA 2: 2 locais apontam a captura
     locations[decoy2] = buildCity(
       decoy2,
       [],
@@ -569,6 +586,8 @@
       cityObj(decoy2, false, false, false),
     ];
 
+    var budget = computeBudget(theft, transit, capture); // ⏱️ tempo dinâmico pela rota
+
     return {
       id: "GER_" + seed,
       codename: "OPERAÇÃO " + pick(rnd, CALLSIGNS),
@@ -576,14 +595,16 @@
       artifactIcon: artifact ? artifact.icon : "🏺",
       artifactImage: artifact ? artifact.image : null,
       initialProfile: culprit.nationality + ", " + culprit.traits[0],
-      timeLimitHours: 48,
+      timeLimitHours: budget,
       difficulty: "ALTA",
       brief:
         "O " +
         (artifact ? artifact.name : "artefato") +
         " foi subtraído de " +
         theft +
-        ". O rastro esfria rápido — siga as pistas para destravar novos destinos.",
+        ". Rota estimada pela agência: " +
+        budget +
+        "h. O rastro esfria rápido — siga as pistas para destravar novos destinos.",
       culprit: {
         id: culprit.id,
         location: {
@@ -598,5 +619,5 @@
     };
   }
   window.NexusGenerator = { generateCase: generateCase };
-  console.log("[GERADOR] v4.0 — densidade alta + prisão/reabertura");
+  console.log("[GERADOR] v5.0 — tempo dinâmico + funil cedo");
 })();
