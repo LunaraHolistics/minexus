@@ -131,6 +131,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--surface);font-
 .clue-item.negative{background:rgba(239,68,68,0.15);border-left:2px solid var(--red);color:#fecaca;}
 .clue-item.inv{display:flex;gap:10px;align-items:flex-start;}
 .inv-icon{flex-shrink:0;width:30px;height:30px;border:1px solid var(--gold);background:rgba(0,51,68,0.4);display:flex;align-items:center;justify-content:center;font-size:15px;border-radius:4px;}
+.inv-icon.img{padding:0;overflow:hidden;}
+.inv-icon.img img{width:100%;height:100%;object-fit:cover;border-radius:3px;}
 .inv-artifact{display:flex;gap:14px;align-items:center;padding:14px;border:1px solid var(--gold);background:rgba(197,160,89,0.08);margin-bottom:20px;}
 .inv-artifact img{width:64px;height:64px;object-fit:cover;border-radius:4px;border:1px solid var(--gold);}
 .inv-artifact .inv-emoji{font-size:40px;}
@@ -265,7 +267,6 @@ global.NexusTime={consumeTime,getLocalTime,formatTime,formatTimeLeft,parseTZ};
 (function(){'use strict';
 const STORAGE_KEY='minexus_case_001', WARRANT_KEY='minexus_warrant', LEVEL_KEY='minexus_agent_level';
 
-// ⛓️ SISTEMA DE CARREIRA (prisão / fuga / reabertura)
 var Career={
   PRISON:'minexus_prison',FUG:'minexus_fugitives',RES:'minexus_resolved',
   get:function(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v==null?d:v;}catch(e){return d;}},
@@ -273,7 +274,7 @@ var Career={
   resolved:function(){return this.get(this.RES,0);},
   getPrison:function(){return this.get(this.PRISON,[]);},
   isImprisoned:function(id){return this.getPrison().some(function(x){return x.id===id;});},
-  fail:function(cd){ // ⏰ tempo esgotou → vilão foge
+  fail:function(cd){
     this.set(this.RES,this.resolved()+1);
     var f=this.get(this.FUG,[]);
     f.push({culpritId:cd.culprit&&cd.culprit.id,artifact:cd.artifact,artifactIcon:cd.artifactIcon,artifactImage:cd.artifactImage,codename:cd.codename,reopenAt:this.resolved()+1,at:Date.now()});
@@ -303,7 +304,17 @@ function persist(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(caseData)
 function audio(ev){try{if(window.ArchiveAudio&&typeof window.ArchiveAudio[ev]==='function')window.ArchiveAudio[ev]();}catch(e){}}
 let toastTimer;
 function showToast(msg,type){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type&&type!=='info'?' '+type:'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3000);}
+
 function iconForTrait(t){var M={'chapéu panamá':'🎩','sotaque francês':'🗣️','anel de sinete':'💍','mão esquerda':'🖐️','cabelos grisalhos':'🧓','terno azul':'🧥','cabelos loiros':'👱','relógio de ouro':'⌚','cabelos negros':'🖤','cicatriz no rosto':'⚡','perfume forte':'🌸','óculos escuros':'🕶️','barba':'🧔','charuto':'🚬','luvas de couro':'🧤','terno escuro':'🕴️','sotaque alemão':'🗣️'};return M[(t||'').trim()]||'•';}
+
+// 🖼️ Mapas de imagens de pistas (fora de iconForTrait, em escopo de módulo)
+var TRAIT_IMG={'chapéu panamá':'../img/inv-trait-chapeu-panama.jpg','sotaque francês':'../img/inv-trait-sotaque-frances.jpg','anel de sinete':'../img/inv-trait-anel-sinete.jpg','mão esquerda':'../img/inv-trait-mao-esquerda.jpg','cabelos grisalhos':'../img/inv-trait-cabelos-grisalhos.jpg','terno azul':'../img/inv-trait-terno-azul.jpg','cabelos loiros':'../img/inv-trait-cabelos-loiros.jpg','relógio de ouro':'../img/inv-trait-relogio-ouro.jpg','cabelos negros':'../img/inv-trait-cabelos-negros.jpg','cicatriz no rosto':'../img/inv-trait-cicatriz-rosto.jpg','perfume forte':'../img/inv-trait-perfume-forte.jpg','óculos escuros':'../img/inv-trait-oculos-escuros.jpg','barba':'../img/inv-trait-barba.jpg','charuto':'../img/inv-trait-charuto.jpg','luvas de couro':'../img/inv-trait-luvas-couro.jpg','terno escuro':'../img/inv-trait-terno-escuro.jpg','sotaque alemão':'../img/inv-trait-sotaque-alemao.jpg'};
+var SCENE_IMG={'mascara-inca':['../img/inv-scene-mascara-fio-ouro.jpg','../img/inv-scene-mascara-veludo.jpg'],'olho-horus':['../img/inv-scene-horus-areia.jpg','../img/inv-scene-horus-mirra.jpg'],'ovo-faberge':['../img/inv-scene-faberge-pena.jpg','../img/inv-scene-faberge-luva.jpg'],'rosa-negra':['../img/inv-scene-rosa-gardenia.jpg','../img/inv-scene-rosa-partitura.jpg'],'dragao-jade':['../img/inv-scene-dragao-lascas.jpg','../img/inv-scene-dragao-jasmin.jpg'],'idolo-obsidiana':['../img/inv-scene-idolo-po.jpg','../img/inv-scene-idolo-petalas.jpg'],'coroa-lauros':['../img/inv-scene-coroa-oliveira.jpg','../img/inv-scene-coroa-azeite.jpg'],'codice':['../img/inv-scene-codice-tinta.jpg','../img/inv-scene-codice-espelho.jpg'],'graal':['../img/inv-scene-graal-cera.jpg','../img/inv-scene-graal-vinho.jpg'],'sino-kyoto':['../img/inv-scene-sino-resina.jpg','../img/inv-scene-sino-corda.jpg'],'escaravelho':['../img/inv-scene-escaravelho-linho.jpg','../img/inv-scene-escaravelho-sal.jpg'],'stradivarius':['../img/inv-scene-stradivarius-breu.jpg','../img/inv-scene-stradivarius-crin.jpg'],'ampulheta':['../img/inv-scene-ampulheta-ambra.jpg','../img/inv-scene-ampulheta-resina.jpg'],'turbante':['../img/inv-scene-turbante-seda.jpg','../img/inv-scene-turbante-po-diamante.jpg'],'icone':['../img/inv-scene-icone-tempera.jpg','../img/inv-scene-icone-incenso.jpg'],'colar-ming':['../img/inv-scene-colar-fio-seda.jpg','../img/inv-scene-colar-perola.jpg']};
+function invIcon(src,emoji){
+  if(src)return '<span class="inv-icon img"><img src="'+src+'" alt="" onerror="this.outerHTML=\''+emoji+'\'"></span>';
+  return '<span class="inv-icon">'+emoji+'</span>';
+}
+
 function findArtifact(name){var A=window.NEXUS_ARTIFACTS||[];var w=(name||'').trim();for(var i=0;i<A.length;i++){if((A[i].name||'').trim()===w)return A[i];}return null;}
 function renderSkyline(){const c=document.getElementById('buildings');c.innerHTML='';[70,85,55,92,74,64,88,48,78,60,82,52,90,68,76,62,80,58,72,86].forEach(function(h){const b=document.createElement('div');b.className='building';b.style.height=h+'%';c.appendChild(b);});}
 function getLocations(){
@@ -341,16 +352,25 @@ function renderTimer(){const el=document.getElementById('timerValue');if(!el)ret
 function renderDrawer(){
   var art=findArtifact(caseData.artifact);var html='';
   html+='<div class="inv-artifact">'+(art&&art.image?'<img src="'+art.image+'" alt="" onerror="this.style.display=\'none\'">':'<span class="inv-emoji">'+(caseData.artifactIcon||'🏺')+'</span>')+'<div><div class="inv-name">'+(caseData.artifact||'Artefato')+'</div><div class="inv-origin">'+(art?((art.origin||'')+' • '+(art.era||'')):'')+'</div></div></div>';
-  if(art&&art.objectClues&&art.objectClues.length){html+='<div class="drawer-section"><div class="drawer-section-title"><i class="fas fa-search"></i> Pistas da Cena do Crime</div>';art.objectClues.forEach(function(oc){html+='<div class="clue-item inv"><span class="inv-icon">🔍</span><div>'+oc+'<div class="clue-item-source">— cena do roubo</div></div></div>';});html+='</div>';}
+  if(art&&art.objectClues&&art.objectClues.length){
+    html+='<div class="drawer-section"><div class="drawer-section-title"><i class="fas fa-search"></i> Pistas da Cena do Crime</div>';
+    var sc=SCENE_IMG[art.id]||[];
+    art.objectClues.forEach(function(oc,i){html+='<div class="clue-item inv">'+invIcon(sc[i],'🔍')+'<div>'+oc+'<div class="clue-item-source">— cena do roubo</div></div></div>';});
+    html+='</div>';
+  }
   html+='<div class="drawer-section"><div class="drawer-section-title"><i class="fas fa-fingerprint"></i> Pistas de Identidade</div>';
   if(!caseData.clues.id.length)html+='<div class="drawer-empty">Nenhum traço registrado.</div>';
-  caseData.clues.id.forEach(function(c){html+='<div class="clue-item inv"><span class="inv-icon">'+iconForTrait(c.idTrait)+'</span><div>'+c.text+'<div class="clue-item-source">— '+c.source+'</div></div></div>';});
+  caseData.clues.id.forEach(function(c){var t=(c.idTrait||'').trim();html+='<div class="clue-item inv">'+invIcon(TRAIT_IMG[t],iconForTrait(t))+'<div>'+c.text+'<div class="clue-item-source">— '+c.source+'</div></div></div>';});
   html+='</div><div class="drawer-section"><div class="drawer-section-title negative"><i class="fas fa-times-circle"></i> Pistas Negativas (Exclusão)</div>';
   if(!caseData.clues.neg.length)html+='<div class="drawer-empty">Nenhuma pista de exclusão.</div>';
-  caseData.clues.neg.forEach(function(c){html+='<div class="clue-item negative inv"><span class="inv-icon">❌</span><div>'+c.text+'<div class="clue-item-source">— '+c.source+'</div></div></div>';});
+  caseData.clues.neg.forEach(function(c){var t=(c.trait||c.negTrait||'').trim();html+='<div class="clue-item negative inv">'+invIcon(TRAIT_IMG[t],'❌')+'<div>'+c.text+'<div class="clue-item-source">— '+c.source+'</div></div></div>';});
   html+='</div><div class="drawer-section"><div class="drawer-section-title"><i class="fas fa-map-marker-alt"></i> Pistas Geográficas</div>';
   if(!caseData.clues.geo.length)html+='<div class="drawer-empty">Nenhuma pista de destino.</div>';
-  caseData.clues.geo.forEach(function(c){html+='<div class="clue-item inv"><span class="inv-icon">🧭</span><div>'+c.text+'<div class="clue-item-source">— '+c.source+'</div></div></div>';});
+  caseData.clues.geo.forEach(function(c){
+    var geoImg=null;
+    if(c.pointsTo&&c.pointsTo[0]&&DB.cities&&DB.cities[c.pointsTo[0]])geoImg=DB.cities[c.pointsTo[0]].photo;
+    html+='<div class="clue-item inv">'+invIcon(geoImg,'🧭')+'<div>'+c.text+'<div class="clue-item-source">— '+c.source+'</div></div></div>';
+  });
   html+='</div>';
   document.getElementById('drawerContent').innerHTML=html;
   var total=(caseData.clues.geo||[]).length+(caseData.clues.id||[]).length+(caseData.clues.neg||[]).length;
@@ -359,7 +379,7 @@ function renderDrawer(){
 function updateTravelButton(){const btn=document.getElementById('btnTravel');if(isEmptyCity){btn.disabled=true;return;}btn.disabled=(caseData.clues.geo||[]).length<1;}
 function updateCrimeNetButton(){const btn=document.getElementById('btnCrimeNet');if(isEmptyCity)btn.disabled=(caseData.clues.id||[]).length<2;}
 function updateCaptureButton(){const btn=document.getElementById('btnCapture');if(!warrantData||!warrantData.correct){btn.style.display='none';return;}const cur=(caseData.cities||[]).find(function(c){return c.current;});if(!cur){btn.style.display='none';return;}btn.style.display=(cur.name===(warrantData.targetLocation&&warrantData.targetLocation.city))?'flex':'none';}
-function renderLocalTime(){const cur=(caseData.cities||[]).find(function(c){return c.current;});const tz=cur?((cityCoords[cur.name]||{}).tz||caseData.timeState.currentCityTZ||'UTC-5'):(caseData.timeState.currentCityTZ||'UTC-5');const local=window.NexusTime.getLocalTime(tz);let clockEl=document.getElementById('localClock');if(!clockEl){const tb=document.querySelector('.timer-block');if(!tb)return;clockEl=document.createElement('div');clockEl.id='localClock';clockEl.style.cssText='margin-top:8px;padding-top:8px;border-top:1px solid rgba(197,160,89,.2);font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--onv);letter-spacing:.1em;';tb.appendChild(clockEl);}const icon=local.isNight?'🌙':local.isDawn?'🌅':local.isDusk?'🌇':'️';clockEl.innerHTML=icon+' '+local.formatted+' • Dia '+(local.day||1);}
+function renderLocalTime(){const cur=(caseData.cities||[]).find(function(c){return c.current;});const tz=cur?((cityCoords[cur.name]||{}).tz||caseData.timeState.currentCityTZ||'UTC-5'):(caseData.timeState.currentCityTZ||'UTC-5');const local=window.NexusTime.getLocalTime(tz);let clockEl=document.getElementById('localClock');if(!clockEl){const tb=document.querySelector('.timer-block');if(!tb)return;clockEl=document.createElement('div');clockEl.id='localClock';clockEl.style.cssText='margin-top:8px;padding-top:8px;border-top:1px solid rgba(197,160,89,.2);font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--onv);letter-spacing:.1em;';tb.appendChild(clockEl);}const icon=local.isNight?'🌙':local.isDawn?'🌅':local.isDusk?'🌇':'☀️';clockEl.innerHTML=icon+' '+local.formatted+' • Dia '+(local.day||1);}
 function renderEmptyCity(){if(!isEmptyCity)return;const cur=(caseData.cities||[]).find(function(c){return c.current;});document.getElementById('emptyCityName').textContent=cur?cur.name+' • '+cur.country:'—';setTimeout(function(){document.getElementById('emptyCityOverlay').classList.add('active');},300);document.getElementById('btnEmptyDiary').addEventListener('click',function(){document.getElementById('cluesDrawer').classList.add('open');audio('playClick');});document.getElementById('btnTravel').disabled=true;}
 function renderAll(){renderSkyline();renderHeader();renderProgress();renderLocations();renderTimer();renderLocalTime();renderDrawer();updateTravelButton();updateCrimeNetButton();updateCaptureButton();renderEmptyCity();}
 let currentLocation=null,currentApproach=null;
@@ -367,8 +387,12 @@ function getCurrentTZ(){const cur=(caseData.cities||[]).find(function(c){return 
 function showApproachOptions(loc){
   currentLocation=loc;
   document.getElementById('modalLocation').textContent=(loc.name||'LOCAL').toUpperCase();
-  const avatarLetter=(loc.witness&&loc.witness.avatar)||((loc.witness&&loc.witness.name)?loc.witness.name.charAt(0):'?');
-  document.getElementById('witnessAvatar').innerHTML='<img src="../img/testemunha-'+(loc.id||'unknown')+'.jpg" alt="" onerror="this.outerHTML=\''+avatarLetter+'\'">';
+  var avatarLetter=(loc.witness&&loc.witness.avatar)||((loc.witness&&loc.witness.name)?loc.witness.name.charAt(0):'?');
+  // Fallback em 2 níveis: específico → genérico (hash-based) → letra
+  var h=0,idstr=loc.id||'';for(var hi=0;hi<idstr.length;hi++){h=(h*31+idstr.charCodeAt(hi))|0;}
+  var gn=(Math.abs(h)%12)+1;
+  var genSrc='../img/testemunha-gen-'+(gn<10?'0'+gn:gn)+'.jpg';
+  document.getElementById('witnessAvatar').innerHTML='<img src="../img/testemunha-'+(loc.id||'unknown')+'.jpg" alt="" onerror="this.onerror=function(){this.outerHTML=\''+avatarLetter+'\';};this.src=\''+genSrc+'\';">';
   document.getElementById('witnessName').textContent=(loc.witness&&loc.witness.name)||'—';
   document.getElementById('witnessRole').textContent=(loc.witness&&loc.witness.role)||'—';
   document.getElementById('clueContainer').innerHTML='<div style="text-align:center;padding:20px;color:#666;font-style:italic;">Como deseja abordar '+((loc.witness&&loc.witness.name)||'a testemunha')+'?</div>';
@@ -402,7 +426,7 @@ function showClueResult(loc){
     if(loc.geoClue)html+='<div class="clue-box"><div class="clue-label"><i class="fas fa-compass"></i> Pista Geográfica</div><div class="clue-text">'+loc.geoClue+'</div></div>';
     if(loc.clueType==='positive'&&loc.idClue)html+='<div class="clue-box"><div class="clue-label"><i class="fas fa-fingerprint"></i> Pista de Identidade</div><div class="clue-text">'+loc.idClue+'</div></div>';
     if(loc.clueType==='negative'&&loc.negClue)html+='<div class="clue-box negative"><div class="clue-label"><i class="fas fa-times-circle"></i> Pista Negativa (Exclusão)</div><div class="clue-text">'+loc.negClue+'</div></div>';
-    var cost=currentApproach==='friendly'?'1h':(currentApproach==='pressure'?'1.5h':'2h');
+    var cost=currentApproach==='friendly'?'1h':(currentApproach==='pressure'?'1.5h':(localStorage.getItem(LEVEL_KEY)>='3'?'1h':'2h'));
     html+='<div class="time-spent-note"><i class="fas fa-clock"></i> '+cost+' consumida na abordagem</div>';
     container.innerHTML=html;
   } else {
@@ -413,7 +437,7 @@ function closeModal(saveClue){
   if(!currentLocation)return;const loc=currentLocation;
   if(saveClue&&loc.hasClue){
     if(!caseData.clues)caseData.clues={geo:[],id:[],neg:[]};
-        if(loc.geoClue&&!caseData.clues.geo.some(function(c){return c.text===loc.geoClue;}))caseData.clues.geo.push({text:loc.geoClue,source:loc.name,pointsTo:loc.pointsTo||loc.reveals||[]});
+    if(loc.geoClue&&!caseData.clues.geo.some(function(c){return c.text===loc.geoClue;}))caseData.clues.geo.push({text:loc.geoClue,source:loc.name,pointsTo:loc.pointsTo||loc.reveals||[]});
     if(loc.reveals&&loc.reveals.length){loc.reveals.forEach(function(cn){var cc=(caseData.cities||[]).filter(function(x){return x.name===cn;})[0];if(cc&&cc.revealed!==true){cc.revealed=true;setTimeout(function(){showToast('🗺️ Novo destino no globo: '+cn,'success');},400);}});}
     if(loc.clueType==='positive'&&loc.idClue&&!caseData.clues.id.some(function(c){return c.text===loc.idClue;}))caseData.clues.id.push({text:loc.idClue,source:loc.name,idTrait:loc.idTrait});
     if(loc.clueType==='negative'&&loc.negClue&&!caseData.clues.neg.some(function(c){return c.text===loc.negClue;}))caseData.clues.neg.push({text:loc.negClue,trait:loc.negTrait,source:loc.name});
@@ -427,15 +451,11 @@ function closeModal(saveClue){
 }
 function dismissWitness(){closeModal(false);}
 function saveClueAction(){closeModal(true);}
-// ⏰ TEMPO ESGOTOU = VILÃO FUGIU → caso vai pra lista de foragidos
 function handleTimeExhausted(){
   Career.fail(caseData);
   showToast('⏰ PRAZO ESGOTADO — O suspeito ESCAPOU! Caso reaberto futuramente.','error');
   audio('playError');
-  setTimeout(function(){
-    try{localStorage.removeItem(STORAGE_KEY);localStorage.removeItem(WARRANT_KEY);}catch(e){}
-    window.location.href='02-hq.html';
-  },2800);
+  setTimeout(function(){try{localStorage.removeItem(STORAGE_KEY);localStorage.removeItem(WARRANT_KEY);}catch(e){}window.location.href='02-hq.html';},2800);
 }
 function toggleDrawer(){document.getElementById('cluesDrawer').classList.toggle('open');audio('playClick');}
 function openCrimeNet(){if((caseData.clues.id||[]).length<2){showToast('Colete ao menos 2 pistas de identidade. (atual: '+(caseData.clues.id||[]).length+')','error');return;}window.location.href='05-crimenet.html';}
@@ -453,7 +473,7 @@ document.getElementById('btnSaveClue').addEventListener('click',saveClueAction);
 document.getElementById('witnessModal').addEventListener('click',function(e){if(e.target.id==='witnessModal')dismissWitness();});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){dismissWitness();document.getElementById('cluesDrawer').classList.remove('open');}if(e.ctrlKey&&e.shiftKey&&e.key==='R'){if(confirm('⚠️ Reiniciar caso?')){localStorage.removeItem(STORAGE_KEY);location.reload();}}});
 renderAll();
-console.log('[M:I NEXUS] 04-cidade v8.0 — Fuga/Prisão/Reabertura | Caso:',caseData.id);
+console.log('[M:I NEXUS] 04-cidade v9.0 — imagens plugadas + CSS corrigido | Caso:',caseData.id);
 })();
 </script>
 </body>
